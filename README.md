@@ -60,3 +60,11 @@ savacct: "Monthly Savings Account Calculator"   Calculates the future value of
                                                 It accepts terms less than one
                                                 year by entering decimal years.
 
+heatindx: "Heat Index Calculator"               Calculates the heat index from
+                                                the outside air temperature
+                                                and the relative humidity.
+                                                
+windchil: "Wind Chill Calculator"               Calculates the wind chill from
+                                                the outside air temperature
+                                                and the wind speed.
+                                                
