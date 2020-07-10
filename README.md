@@ -68,3 +68,4 @@ windchil: "Wind Chill Calculator"               Calculates the wind chill from
                                                 the outside air temperature
                                                 and the wind speed.
                                                 
+escape: "ESCAPE"                                ESCAPE is a two-dimensional game
