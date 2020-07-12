@@ -158,12 +158,30 @@
        01 player-in     pic x.
       * A$:           This variable accepts input from the player.
       *
-       01 playerscore   pic 99.
+       01 playerscore   pic 99 value zero.
       * PLAYERSCORE:  This variable stores the player's wins.
       *
-       01 robotscore    pic 99.
+       01 robotscore    pic 99 value zero.
       * ROBOTSCORE:   This variable stores the robot's wins.
       *
+       01 pursuers-left pic 99.
+
+      * DO NOT USE CURRENT-DATE function as a random number seed!
+      * This causes the same random number to be generated repeatedly!
+      * Try this algorithm instead:
+      * divide ss by 100 giving factor
+      * add factor to random-num
+      *
+       01 datetime-label.
+           02 filler    pic x(10) value spaces.
+           02 filler    pic x(4) value "yyyy".
+           02 filler    pic xx value "mo".
+           02 filler    pic xx value "dd".
+           02 filler    pic xx value "hh".
+           02 filler    pic xx value "mm".
+           02 filler    pic xx value "ss".
+           02 filler    pic xx value "hs".
+
        01 datetime.
            02 yyyy      pic 9(4).
            02 mo        pic 99.
@@ -175,14 +193,13 @@
            02 plsormns  pic x.
            02 tzh       pic 99.
            02 tzm       pic 99.
-      * datetime | hund-sec is retrieved from SYSTEM TIME to seed the
-      * random number generator function.
-      *
+
        01 factor        pic 9v999.
        01 random-num    pic 9v9(10).
-       01 random-int    pic 999.
+       01 random-int    pic 9.
        01 random-x      pic 999.
        01 random-y      pic 999.
+      *
       * random-num & random-int store the generated random number
       *
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -190,70 +207,85 @@
        01 tab-over      pic x(2) value spaces.
 
        PROCEDURE DIVISION.
-       primary SECTION.
-           perform display-title-screen
-           perform instructions-prompt
-           perform pursuers-prompt
-           exit SECTION.
+       100-primary.
+           perform 110-display-title-screen
+           perform 120-instructions-prompt
+           perform 130-pursuers-prompt.
 
-       main SECTION.
-       initialization-paragraph.
-           perform build-north-south-walls varying x from 1 by 1
+      * 200-main SECTION.
+       210-initialization-paragraph.
+           perform 211-build-north-south-walls varying x from 1 by 1
                                          until x is equal to max-x + 1
 
-           perform build-east-west-walls varying y from 1 by 1
+           perform 212-build-east-west-walls varying y from 1 by 1
                                          until y is equal to max-y + 1
 
-      * Generate seed for random number generator from SYSTEM TIME
            move function current-date to datetime
-           perform place-random-obstacles varying x from 2 by 1 until
-                                            x is equal to max-x
-                                            after y from 2 by 1 until
-                                            y is equal to max-y
+           divide hund-sec by 1000 giving factor
+           perform 213-place-random-obstacles varying x from 2 by 1
+                                             until x is equal to max-x
+                                             after y from 2 by 1
+                                             until y is equal to max-y.
 
-           perform place-teleports varying n from 1 by 1
+      * Comment out the next display line after debugging
+           display "Random numbers for teleport placement:"
+           perform 214-place-teleports varying n from 1 by 1
                                    until n is equal to num-teleports + 1
 
-           perform place-pursuers varying n from 1 by 1
+      * Comment out the next display line after debugging
+           display "Random numbers for pursuers placement:"
+           perform 215-place-pursuers varying n from 1 by 1
                                    until n is equal to pursuers + 1
 
-           perform place-player
+      * Comment out the next display line after debugging
+           display "Random numbers for player placement:"
+           perform 216-place-player
 
            move zero to numberofdeadrobots
 
-           perform main-paragraph
-              until numberofdeadrobots
-              is greater than or equal to pursuers
-           exit SECTION.
+           perform 220-main-paragraph.
+      *       until numberofdeadrobots
+      *       is greater than or equal to pursuers.
 
-       terminating SECTION.
-       end-program.
+       220-main-paragraph.
+           perform 420-display-playing-field
+           perform 440-players-move
+           move zero to n
+           perform 450-robots-move
+                   varying n from 1 by 1
+                   until n is equal to pursuers + 1
+           .
+      * 200-exit-main SECTION.
+
+      * 300-terminating SECTION.
+       310-end-program.
            if c(playery, playerx) = robot then
               add 1 to robotscore
-              perform display-playing-field
+              perform 420-display-playing-field
               display "G A M E   O V E R"
            else
               add 1 to playerscore
-              perform display-playing-field
+              perform 420-display-playing-field
               display "Y O U   W I N!"
            end-if.
 
-       another-game.
+       320-another-game.
            display "Would you like to play again? (Y/N)"
            accept player-in
            move function lower-case(player-in) to player-in
            EVALUATE true
            when player-in is equal to "y"
-              go to initialization-paragraph
+              go to 210-initialization-paragraph
            when player-in is not equal to "n"
-              go to another-game
+              go to 320-another-game
            END-EVALUATE.
 
-       return-to-operating-system.
-           stop run
-           exit SECTION.
+       330-return-to-operating-system.
+           stop run.
 
-       display-title-screen.
+      * 300-exit-termination SECTION.
+
+       110-display-title-screen.
       *    display spaces
            display "***************************************************"
            display "                ESCAPE a.k.a. CHASE                "
@@ -272,10 +304,9 @@
            display "https://archive.org/details/"
            display "Creative_Computing_v02n01_Jan-Feb1976"
            display "***************************************************"
-           display spaces
-           exit.
+           display spaces.
 
-       instructions-prompt.
+       120-instructions-prompt.
            display "Would you like instructions (Y/N)? "
       *             with no advancing
            accept player-in
@@ -283,53 +314,12 @@
 
            EVALUATE true
                WHEN player-in = 'y'
-                  perform instructions
+                  perform 121-instructions
                WHEN OTHER
                   CONTINUE
-           END-EVALUATE
-           exit.
+           END-EVALUATE.
 
-       pursuers-prompt.
-           display "How many pursuers? "
-      *             with no advancing
-           accept pursuers-in
-
-           if pursuers-in is equal to "zero" or
-              pursuers-in is equal to "ZERO" then
-              go to return-to-operating-system
-           end-if
-
-           if function test-numval(pursuers-in) is not equal zero then
-              display "Pursuers quantity is not numeric."
-              go to pursuers-prompt
-           else
-              compute pursuers = function numval(pursuers-in)
-           end-if
-
-           EVALUATE true
-           when pursuers is less than min-pursuers
-              display "Don't you want a challenge?!"
-              display "At least try to evade more than four pursuers."
-              display spaces
-              go to pursuers-prompt
-
-           when pursuers is greater than max-pursuers
-              display "You must be a glutton for punishment!"
-              display "The playing field gets crowded with more than 50"
-      *                 with no advancing
-              display "pursuers."
-              display spaces
-              go to pursuers-prompt
-
-           when pursuers is not equal to function integer(pursuers)
-              display "Quit goofing off and give me a whole number!"
-              display spaces
-              go to pursuers-prompt
-
-           END-EVALUATE
-           exit.
-
-       instructions.
+       121-instructions.
            display "The player is trapped in an enclosed labyrinth "
       *              with no advancing
            display "running from robotic pursuers. Fortunately, the "
@@ -363,23 +353,65 @@
       *              with no advancing
            display "(" robot "). The player is the (" player "). The "
            display "player can move:"
-           perform display-controls
-           exit.
+           perform 410-display-controls.
 
-       build-north-south-walls.
+       130-pursuers-prompt.
+           display "How many pursuers? (" min-pursuers "-" max-pursuers
+                    with no advancing
+           display "): " with no advancing
+           accept pursuers-in
+
+           if pursuers-in is equal to "zero" or
+              pursuers-in is equal to "ZERO" then
+              go to 330-return-to-operating-system
+           end-if
+
+           if function test-numval(pursuers-in) is not equal zero then
+              display "Pursuers quantity is not numeric."
+              go to 130-pursuers-prompt
+           else
+              compute pursuers = function numval(pursuers-in)
+           end-if
+
+           EVALUATE true
+           when pursuers is less than min-pursuers
+              display "Don't you want a challenge?!"
+              display "At least try to evade more than four pursuers."
+              display spaces
+              go to 130-pursuers-prompt
+
+           when pursuers is greater than max-pursuers
+              display "You must be a glutton for punishment!"
+              display "The playing field gets crowded with more than 50"
+      *                 with no advancing
+              display "pursuers."
+              display spaces
+              go to 130-pursuers-prompt
+
+           when pursuers is not equal to function integer(pursuers)
+              display "Quit goofing off and give me a whole number!"
+              display spaces
+              go to 130-pursuers-prompt
+
+           END-EVALUATE.
+
+       211-build-north-south-walls.
            move wall to c (1, x)
-           move wall to c (max-y, x)
-           exit.
+           move wall to c (max-y, x).
 
-       build-east-west-walls.
+       212-build-east-west-walls.
            move wall to c (y, 1)
-           move wall to c (y, max-x)
-           exit.
+           move wall to c (y, max-x).
 
-       place-random-obstacles.
-           divide ss by hund-sec giving factor
-           compute random-num = function random + factor
+       213-place-random-obstacles.
+           compute random-num = function random
+           add factor to random-num
            compute random-int = function integer(random-num * 10)
+      *
+      * Comment out the next display lines after debugging
+           display "R: " random-num " |I: " random-int " |X: " x
+                   with no advancing
+           display " |Y: " y
 
            if random-int
                           is equal to 5
@@ -389,67 +421,58 @@
                  move wall to c (y, x)
            else
                  move emptyspace to c (y, x)
-           end-if
-           exit.
+           end-if.
 
-       place-teleports.
-           perform teleport-character
-           move teleport to c (y, x)
-           exit.
+       214-place-teleports.
+           perform 430-teleport-character
+           move teleport to c (y, x).
 
-       place-pursuers.
-           perform teleport-character
+       215-place-pursuers.
+           perform 430-teleport-character
            move x to pursuerx (n)
            move y to pursuery (n)
-           move robot to c (y, x)
-           exit.
+           move robot to c (y, x).
 
-       place-player.
-           perform teleport-character
+       216-place-player.
+           perform 430-teleport-character
            move x to playerx
            move y to playery
-           move player to c (y, x)
-           exit.
+           move player to c (y, x).
 
-       main-paragraph.
-           perform display-playing-field
-           perform players-move
-           move zero to n
-           perform robots-move varying n from 1 by 1
-                               until n is equal to pursuers + 1
-
-           exit.
-
-       display-controls.
+      * 400-subroutines SECTION.
+      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+      *               DISPLAY PLAYER CONTROLS SUBROUTINE              *
+      *                                                               *
+       410-display-controls.
            display spaces
-           display tab-over " NW     N     NE"
-      *    display tab-over "       \    |    /"
+           display tab-over "        N"
+           display tab-over "   NW       NE"
            display tab-over "     T  Y  U"
-      *    display tab-over "        [T][Y][U]"
-           display tab-over "W    G  *  H    E"
-      *    display tab-over "WEST -- [G][*][H] -- EAST"
+           display tab-over "  W  G  *  H  E"
            display tab-over "     V  B  N"
-      *    display tab-over "        [V][B][N]"
-      *    display spaces
-      *    display tab-over "       /    |    \"
-           display tab-over " SW     S     SE"
-           display spaces
-           exit.
+           display tab-over "   SW       SE"
+           display tab-over "        S"
+           display spaces.
 
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
       *                DISPLAY PLAYING-FIELD SUBROUTINE               *
       *                                                               *
-       display-playing-field.
+       420-display-playing-field.
+           subtract numberofdeadrobots from pursuers
+                    giving pursuers-left
            display spaces
-           perform display-row varying y from 1 by 1
+           perform 421-display-row varying y from 1 by 1
                                until y is equal to max-y + 1
-           perform display-controls
-           exit.
+           perform 410-display-controls
+           display "Player @" playerx ", " playery "          "
+                    with no advancing
+           display "Pursuers: " pursuers-left
+           display "  " playerscore with no advancing
+           display "                          " robotscore.
       *                                                               *
-       display-row.
-      *    display y ": " with no advancing
-           display r (y)
-           exit.
+       421-display-row.
+           display y ": " with no advancing
+           display r (y).
       *                                                               *
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
       *                  TELEPORT CHARACTER SUBROUTINE                *
@@ -458,17 +481,13 @@
       * that is not currently occupied by a WALL, a TELEPORT, or a    *
       * ROBOT.  Store the X,Y coordinates in the variables X and Y.   *
       *                                                               *
-       teleport-character.
-      * Generate seed for random number generator from SYSTEM TIME
-           move function current-date to datetime
-           divide ss by 100 giving factor
+       430-teleport-character.
            compute random-num = function random
            add factor to random-num
            compute random-x = function integer(random-num * max-x)
            move random-x to x
            add 1 to x
 
-           divide mm by 100 giving factor
            compute random-num = function random
            add factor to random-num
            compute random-y = function integer(random-num * max-y)
@@ -478,17 +497,16 @@
            if c (y, x) IS NOT EQUAL TO emptyspace OR
               x < 2 OR x > max-x - 1 OR
               y < 2 OR y > max-y - 1 then
-              go to teleport-character
+              go to 430-teleport-character
            end-if
       *
       * Comment out these display lines after debugging
-      *     display "N: " n " X: " x " Y: " y
-           exit.
+            display "N: " n " X: " x " Y: " y.
       *                                                               *
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
       *                    PLAYER'S MOVE SUBROUTINE                   *
       *                                                               *
-       players-move.
+       440-players-move.
       *
       * Store previous position as current position
            move playerx to playerx1
@@ -503,52 +521,52 @@
                WHEN player-in = "T" or
                     player-in = "t" or
                     player-in = "7"
-                       perform move-nw
+                       perform 447-move-nw
 
                WHEN player-in = "Y" or
                     player-in = "y" or
                     player-in = "8"
-                       perform move-north
+                       perform 448-move-north
 
                WHEN player-in = "U" or
                     player-in = "u" or
                     player-in = "9"
-                       perform move-ne
+                       perform 449-move-ne
 
                WHEN player-in = "G" or
                     player-in = "g" or
                     player-in = "4"
-                       perform move-west
+                       perform 444-move-west
 
                WHEN player-in = "H" or
                     player-in = "h" or
                     player-in = "6"
-                       perform move-east
+                       perform 446-move-east
 
                WHEN player-in = "V" or
                     player-in = "v" or
                     player-in = "1"
-                       perform move-sw
+                       perform 441-move-sw
 
                WHEN player-in = "B" or
                     player-in = "b" or
                     player-in = "2"
-                       perform move-south
+                       perform 442-move-south
 
                WHEN player-in = "N" or
                     player-in = "n" or
                     player-in = "3"
-                       perform move-se
+                       perform 443-move-se
 
                WHEN player-in = "*" or
                     player-in = "5"
                        CONTINUE
 
                WHEN player-in = "0"
-                       go to another-game
+                       go to 320-another-game
 
                WHEN OTHER
-                       go to players-move
+                       go to 440-players-move
            END-EVALUATE
 
       * Is the player's current position occupied by a wall or a robot?
@@ -558,14 +576,14 @@
       * Go back to previous position - do not let player commit suicide
                  move playerx1 to playerx
                  move playery1 to playery
-                 go to players-move
+                 go to 440-players-move
            end-if
 
       * Is the player's current position occupied by a teleport?
            if c (playery, playerx) = teleport then
 
       * Jump through the teleport & see where you end up
-                 perform teleport-character
+                 perform 430-teleport-character
                  move x to playerx
                  move y to playery
            end-if
@@ -573,49 +591,41 @@
       * Make previous position empty space
       * Make current position player
            move emptyspace to c (playery1, playerx1)
-           move player to c (playery, playerx)
-           exit.
+           move player to c (playery, playerx).
 
-       move-nw.
+       447-move-nw.
            subtract 1 from playerx
+           subtract 1 from playery.
+
+       448-move-north.
+           subtract 1 from playery.
+
+       449-move-ne.
            subtract 1 from playery
-           exit.
+           add 1 to playerx.
 
-       move-north.
-           subtract 1 from playery
-           exit.
+       444-move-west.
+           subtract 1 from playerx.
 
-       move-ne.
-           subtract 1 from playery
-           add 1 to playerx
-           exit.
+       446-move-east.
+           add 1 to playerx.
 
-       move-west.
-           subtract 1 from playerx
-           exit.
-
-       move-east.
-           add 1 to playerx
-           exit.
-
-       move-sw.
+       441-move-sw.
            add 1 to playery
-           subtract 1 from playerx
-           exit.
+           subtract 1 from playerx.
 
-       move-south.
-           add 1 to playery
-           exit.
+       442-move-south.
+           add 1 to playery.
 
-       move-se.
+       443-move-se.
            add 1 to playery
-           add 1 to playerx
-           exit.
+           add 1 to playerx.
       *                                                               *
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
       *                    ROBOT'S MOVE SUBROUTINE                    *
       *                                                               *
-       robots-move.
+       450-robots-move.
+      *    add 1 to n  <<< not needed with perform varying
       *
       * Check if robot(n) has already terminated into a wall
            move pursuerx(n) to x
@@ -633,6 +643,9 @@
                                    function sign(playerx - pursuerx(n))
            compute pursuery(n) = pursuery(n) +
                                    function sign(playery - pursuery(n))
+      *
+      * Comment out this display line after debugging
+           display "N: " n " |X: " pursuerx(n) " |Y: " pursuery(n)
       *
       * Vacate robot's previous position
            move pursuerx1(n) to x
@@ -660,11 +673,11 @@
               move pursuerx1(n) to x
               move pursuery1(n) to y
               move emptyspace to c (y, x)
-              perform display-playing-field
-              go to end-program
+              perform 420-display-playing-field
+              go to 310-end-program
 
            when c (y, x) is equal to teleport
-              perform teleport-character
+              perform 430-teleport-character
               move x to pursuerx(n)
               move y to pursuery(n)
               move robot to c (y, x)
@@ -674,5 +687,15 @@
 
            when c (y, x) is equal to emptyspace
               move robot to c (y, x)
+              move x to pursuerx(n)
+              move y to pursuery(n)
            END-EVALUATE
+      *    .
+      * Failsafe: comment out after debugging:
+           display "Press 0 to exit or any other to continue:"
+           accept player-in
+           if player-in = "0" then
+              go to 330-return-to-operating-system
+           end-if
            exit.
+
