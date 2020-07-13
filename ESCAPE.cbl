@@ -78,14 +78,18 @@
       *               32 (base 10) in ASCII or 64 (base 10) in EBCDIC.
       *               20 (base 16)             40 (base 16)
       *
+       01 min-pursuers pic 99 value 5.
+       01 min-pursuers-out pic z9.
+       01 max-pursuers pic 99 value 50.
+      *
+      *01 min-teleports pic 99 value 1.
+      *01 max-teleports pic 99 value 99.
+       01 num-teleports pic 99 value 5.
+      *
+      * Specify playing field dimensions
        01 max-x        pic 99 value 20.
        01 max-y        pic 99 value 10.
-       01 min-pursuers pic 99 value 5.
-       01 max-pursuers pic 99 value 50.
-       01 min-teleports pic 99 value 1.
-       01 max-teleports pic 99 value 99.
-       01 num-teleports pic 99 value 5.
-
+      *
        01 playing-field.
            02 r              occurs 10 to 50 times depending on max-y.
               03 c     pic x occurs 20 to 100 times depending on max-x
@@ -204,7 +208,19 @@
       *
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-       01 tab-over      pic x(2) value spaces.
+      *
+      * column-headers to allow the player to easily determine
+      * positions on the playing field
+       01 column-headers.
+           02 col-ln-1.
+              03 filler    pic x(5)  value spaces.
+              03 tens      pic x(20) value "0        1         2".
+           02 col-ln-2.
+              03 filler    pic x(5)  value spaces.
+              03 ones      pic x(20) value "12345678901234567890".
+      *
+      * controls length of tab stops on screen
+       01 tab-over      pic x(10) value spaces.
 
        PROCEDURE DIVISION.
        100-primary.
@@ -243,9 +259,13 @@
 
            move zero to numberofdeadrobots
 
-           perform 220-main-paragraph.
-      *       until numberofdeadrobots
-      *       is greater than or equal to pursuers.
+           perform 220-main-paragraph
+              until numberofdeadrobots
+              is greater than or equal to pursuers
+
+           perform 310-end-program.
+      *    perform 320-another-game
+      *    perform 330-return-to-operating-system.
 
        220-main-paragraph.
            perform 420-display-playing-field
@@ -253,8 +273,8 @@
            move zero to n
            perform 450-robots-move
                    varying n from 1 by 1
-                   until n is equal to pursuers + 1
-           .
+                   until n is equal to pursuers + 1.
+
       * 200-exit-main SECTION.
 
       * 300-terminating SECTION.
@@ -267,7 +287,9 @@
               add 1 to playerscore
               perform 420-display-playing-field
               display "Y O U   W I N!"
-           end-if.
+           end-if
+           display spaces
+           display "# Dead robots: " numberofdeadrobots.
 
        320-another-game.
            display "Would you like to play again? (Y/N)"
@@ -286,10 +308,10 @@
       * 300-exit-termination SECTION.
 
        110-display-title-screen.
-      *    display spaces
+           display spaces
            display "***************************************************"
            display "                ESCAPE a.k.a. CHASE                "
-      *    display spaces
+           display spaces
            display "Original Author: unknown"
            display "Modified by: Bill Cotter, Pittsfield, MA in "
       *              with no advancing
@@ -356,11 +378,14 @@
            perform 410-display-controls.
 
        130-pursuers-prompt.
-           display "How many pursuers? (" min-pursuers "-" max-pursuers
+           move min-pursuers to min-pursuers-out
+           display "How many pursuers? (" min-pursuers-out "-"
                     with no advancing
-           display "): " with no advancing
+           display max-pursuers "): " with no advancing
            accept pursuers-in
 
+      *
+      * This is a failsafe to end the program here.
            if pursuers-in is equal to "zero" or
               pursuers-in is equal to "ZERO" then
               go to 330-return-to-operating-system
@@ -445,15 +470,15 @@
       *                                                               *
        410-display-controls.
            display spaces
-           display tab-over "        N"
-           display tab-over "   NW       NE"
-           display tab-over "     T  Y  U"
-           display tab-over "  W  G  *  H  E"
-           display tab-over "     V  B  N"
-           display tab-over "   SW       SE"
-           display tab-over "        S"
+           display tab-over "    N"
+           display tab-over " NW   NE"
+           display tab-over "   TYU"
+           display tab-over "W  G*H  E"
+           display tab-over "   VBN"
+           display tab-over " SW   SE"
+           display tab-over "    S"
            display spaces.
-
+      *                                                               *
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
       *                DISPLAY PLAYING-FIELD SUBROUTINE               *
       *                                                               *
@@ -461,9 +486,17 @@
            subtract numberofdeadrobots from pursuers
                     giving pursuers-left
            display spaces
+           display col-ln-1
+           display col-ln-2
            perform 421-display-row varying y from 1 by 1
                                until y is equal to max-y + 1
            perform 410-display-controls
+      *
+      * I do not feel that using DISPLAY variables for playerx and
+      * playery in the next DISPLAY statement is necessary. The
+      * "Pursuers: " label would shift left and right as the player's
+      * coordinates changed. That would be a distraction.
+      *
            display "Player @" playerx ", " playery "          "
                     with no advancing
            display "Pursuers: " pursuers-left
@@ -501,7 +534,7 @@
            end-if
       *
       * Comment out these display lines after debugging
-            display "N: " n " X: " x " Y: " y.
+            display "N: " n "|X: " x "|Y: " y.
       *                                                               *
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
       *                    PLAYER'S MOVE SUBROUTINE                   *
@@ -631,7 +664,7 @@
            move pursuerx(n) to x
            move pursuery(n) to y
            if c (y, x) is equal to wall then
-              exit
+              exit paragraph
            end-if
       *
       * Store current position of robot(n) as previous position
@@ -677,13 +710,19 @@
               go to 310-end-program
 
            when c (y, x) is equal to teleport
-              perform 430-teleport-character
-              move x to pursuerx(n)
-              move y to pursuery(n)
-              move robot to c (y, x)
+      *
+      * Vacate robot's previous position
               move pursuerx1(n) to x
               move pursuery1(n) to y
               move emptyspace to c (y, x)
+      *
+      * Go through the wormhole
+              perform 430-teleport-character
+      *
+      * Place robot in new random position
+              move x to pursuerx(n)
+              move y to pursuery(n)
+              move robot to c (y, x)
 
            when c (y, x) is equal to emptyspace
               move robot to c (y, x)
