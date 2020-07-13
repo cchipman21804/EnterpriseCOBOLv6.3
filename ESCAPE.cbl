@@ -16,8 +16,8 @@
       * Based on the BASIC source code in the Jan-Feb 1976 edition of *
       * Creative Computing magazine (pp 76-77)                        *
       *                                                               *
-      * https://archive.org/details/Creative_Computing_               *
-      *                                            v02n01_Jan-Feb1976 *
+      * https://archive.org/details/Creative_Computing                *
+      *                                           _v02n01_Jan-Feb1976 *
       *                                                               *
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
       *                                                               *
@@ -47,13 +47,14 @@
       * the walls and obstacles on the playing field. Five teleports are
       * randomly scattered throughout the playing field.  These devices
       * will randomly transport whatever falls into them to another
-      * random location on the playing field.
+      * random location on the playing field. It may even transport the
+      * player into the open arms of a robotic pursuer!
       *
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
       *
        DATA DIVISION.
        WORKING-STORAGE SECTION.
-
+      *
       *                        LIST OF VARIABLES
       *
        01 wall         pic x value "X".
@@ -78,21 +79,45 @@
       *               32 (base 10) in ASCII or 64 (base 10) in EBCDIC.
       *               20 (base 16)             40 (base 16)
       *
-       01 min-pursuers pic 99 value 5.
+       01 min-pursuers pic 99 value 2.
        01 min-pursuers-out pic z9.
        01 max-pursuers pic 99 value 50.
+      *
+      *                        *** <!WARNING!> ***
+      *
+      * IF THERE ARE MORE PARTICIPANTS THAN EMPTY SPACE ON THE PLAYING
+      * FIELD, THE ALGORITHM WILL FALL INTO A PERPETUAL LOOP, TRYING TO
+      * LOOK FOR EMPTY SPACE!
+      *
+      * Odds of winning on a 20x10 playing field
+      *  5 pursuers: 80%
+      * 10 pursuers: 57%
+      * 15 pursuers: 37%
+      * 20 pursuers: 33%
+      * 25 pursuers: 15%
+      * 50 pursuers:  5%
       *
       *01 min-teleports pic 99 value 1.
       *01 max-teleports pic 99 value 99.
        01 num-teleports pic 99 value 5.
       *
-      * Specify playing field dimensions
-       01 max-x        pic 99 value 20.
+      * Increasing the number of teleports on the playing field may
+      * lower the perceived difficulty with a given number of pursuers.
+      *
+      * Specify playing field dimensions here:
+       01 max-x        pic 999 value 20.
+      *
+      * 75 columns is the maximum that will fit on an 80 col display.
+      *
        01 max-y        pic 99 value 10.
+      *
+      * 15 lines is the maximum that will fit on a 24 line display.
+      * 23 lines is the maximum that will fit on a 32 line display.
+      * 34 lines is the maximum that will fit on a 43 line display.
       *
        01 playing-field.
            02 r              occurs 10 to 50 times depending on max-y.
-              03 c     pic x occurs 20 to 100 times depending on max-x
+              03 c     pic x occurs 20 to 130 times depending on max-x
                        value space.
       * A( , ):       This two-dimensional array stores the ASCII values
       *               of each position on the playing field.
@@ -169,23 +194,13 @@
       * ROBOTSCORE:   This variable stores the robot's wins.
       *
        01 pursuers-left pic 99.
-
+      *
       * DO NOT USE CURRENT-DATE function as a random number seed!
       * This causes the same random number to be generated repeatedly!
       * Try this algorithm instead:
-      * divide ss by 100 giving factor
+      * divide hund-sec by 100 giving factor
       * add factor to random-num
       *
-       01 datetime-label.
-           02 filler    pic x(10) value spaces.
-           02 filler    pic x(4) value "yyyy".
-           02 filler    pic xx value "mo".
-           02 filler    pic xx value "dd".
-           02 filler    pic xx value "hh".
-           02 filler    pic xx value "mm".
-           02 filler    pic xx value "ss".
-           02 filler    pic xx value "hs".
-
        01 datetime.
            02 yyyy      pic 9(4).
            02 mo        pic 99.
@@ -197,30 +212,87 @@
            02 plsormns  pic x.
            02 tzh       pic 99.
            02 tzm       pic 99.
-
+      *
+       01 datetime-label.
+           02 filler    pic x(4) value "yyyy".
+           02 filler    pic xx value "mo".
+           02 filler    pic xx value "dd".
+           02 filler    pic xx value "hh".
+           02 filler    pic xx value "mm".
+           02 filler    pic xx value "ss".
+           02 filler    pic xx value "hs".
+      *
+      * random-num & random-int store the generated random number
        01 factor        pic 9v999.
        01 random-num    pic 9v9(10).
        01 random-int    pic 9.
        01 random-x      pic 999.
        01 random-y      pic 999.
       *
-      * random-num & random-int store the generated random number
-      *
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
       *
-      * column-headers to allow the player to easily determine
+      * column-headers allow the player to easily determine
       * positions on the playing field
        01 column-headers.
            02 col-ln-1.
-              03 filler    pic x(5)  value spaces.
-              03 tens      pic x(20) value "0        1         2".
+              03 units.
+                 04 filler pic x     value "0".
+              03 tens.
+                 04 filler pic x(8)  value spaces.
+                 04 filler pic x     value "1".
+              03 twenties.
+                 04 filler pic x(9)  value spaces.
+                 04 filler pic x     value "2".
+              03 thirites.
+                 04 filler pic x(9)  value spaces.
+                 04 filler pic x     value "3".
+              03 forties.
+                 04 filler pic x(9)  value spaces.
+                 04 filler pic x     value "4".
+              03 fifties.
+                 04 filler pic x(9)  value spaces.
+                 04 filler pic x     value "5".
+              03 sixties.
+                 04 filler pic x(9)  value spaces.
+                 04 filler pic x     value "6".
+              03 seventies.
+                 04 filler pic x(9)  value spaces.
+                 04 filler pic x     value "7".
+      *       03 eighties.
+      *          04 filler pic x(9)  value spaces.
+      *          04 filler pic x     value "8".
+      * 75 columns in the playing field is the limit for an 80 column
+      * display
            02 col-ln-2.
-              03 filler    pic x(5)  value spaces.
-              03 ones      pic x(20) value "12345678901234567890".
+              03 digits    pic x(10) value "1234567890".
+      *
+      * Compass for player controls
+       01 player-controls.
+           02 pc-lines occurs 7 times.
+              03 ln-1      pic x(9)  value "    N    ".
+              03 ln-2      pic x(9)  value " NW   NE ".
+              03 ln-3      pic x(9)  value "   TYU   ".
+              03 ln-4      pic x(9)  value "W  G*H  E".
+              03 ln-5      pic x(9)  value "   VBN   ".
+              03 ln-6      pic x(9)  value " SW   SE ".
+              03 ln-7      pic x(9)  value "    S    ".
       *
       * controls length of tab stops on screen
+       01 tiny-tab-over pic x(5)  value spaces.
+       01 sm-tab-over   pic x(9)  value spaces.
        01 tab-over      pic x(10) value spaces.
+      *
+      * You can find the original BASIC source code here:
+       01 url.
+           02 part1        pic x(28)
+                    value "https://archive.org/details/".
+
+           02 part2        pic x(37)
+                    value "Creative_Computing_v02n01_Jan-Feb1976".
+      *
+      * For the top and bottom title screen boundaries
+       01 stars            pic x(40)
+                    value "****************************************".
 
        PROCEDURE DIVISION.
        100-primary.
@@ -237,6 +309,10 @@
                                          until y is equal to max-y + 1
 
            move function current-date to datetime
+      *
+      * Comment out the next two display lines after debugging
+           display datetime
+           display datetime-label
            divide hund-sec by 1000 giving factor
            perform 213-place-random-obstacles varying x from 2 by 1
                                              until x is equal to max-x
@@ -263,7 +339,7 @@
               until numberofdeadrobots
               is greater than or equal to pursuers
 
-           perform 310-end-program.
+           go to 310-end-program.
       *    perform 320-another-game
       *    perform 330-return-to-operating-system.
 
@@ -282,17 +358,18 @@
            if c(playery, playerx) = robot then
               add 1 to robotscore
               perform 420-display-playing-field
-              display "G A M E   O V E R"
+              display tab-over "G A M E   O V E R"
            else
               add 1 to playerscore
               perform 420-display-playing-field
-              display "Y O U   W I N!"
+              display tab-over "Y O U   W I N!"
            end-if
-           display spaces
-           display "# Dead robots: " numberofdeadrobots.
+           display spaces.
+      *    display "# Dead robots: " numberofdeadrobots.
 
        320-another-game.
-           display "Would you like to play again? (Y/N)"
+           display "Would you like to play again? (Y/N): "
+                    with no advancing
            accept player-in
            move function lower-case(player-in) to player-in
            EVALUATE true
@@ -309,28 +386,30 @@
 
        110-display-title-screen.
            display spaces
-           display "***************************************************"
-           display "                ESCAPE a.k.a. CHASE                "
+           display stars stars
+           display tab-over tab-over tab-over "ESCAPE a.k.a. CHASE"
            display spaces
            display "Original Author: unknown"
            display "Modified by: Bill Cotter, Pittsfield, MA in "
-      *              with no advancing
+                    with no advancing
            display "Honeywell 600/6000 BASIC"
            display spaces
            display "Ported to Enterprise COBOL v6.3 for z/OS "
-      *              with no advancing
+                    with no advancing
            display "by: Cliff Chipman, Salisbury, MD"
            display spaces
            display "Based on the BASIC source code in the Jan-Feb 1976 "
-           display "edition of Creative Computing magazine (pp 76-77)  "
-           display "https://archive.org/details/"
-           display "Creative_Computing_v02n01_Jan-Feb1976"
-           display "***************************************************"
+                    with no advancing
+           display "edition of Creative Computing"
+           display "magazine (pp 76-77)"
+           display spaces
+           display url
+           display stars stars
            display spaces.
 
        120-instructions-prompt.
            display "Would you like instructions (Y/N)? "
-      *             with no advancing
+                    with no advancing
            accept player-in
            move function lower-case(player-in) to player-in
 
@@ -343,39 +422,66 @@
 
        121-instructions.
            display "The player is trapped in an enclosed labyrinth "
-      *              with no advancing
-           display "running from robotic pursuers. Fortunately, the "
-           display "walls and obstacles are fatal to the robots. The "
-      *              with no advancing
-           display "object of the game is to position the player where "
-           display "the robots will crash into the obstacles or into "
-      *              with no advancing
-           display "each other. The walls and obstacles are not fatal "
-           display "to the player because the computer does not allow "
-      *              with no advancing
-           display "the player to make a move that brings him into "
-           display "contact with them. The computer also will not "
-      *              with no advancing
-           display "allow the player to commit suicide by moving onto a"
-           display "space already occupied by a robot. The robots "
-      *              with no advancing
-           display "blindly determine their direction of travel based "
-           display "solely on the relative direction of the player. "
-      *              with no advancing
-           display "This causes the robots to eventually stumble into"
-           display "the walls and obstacles on the playing field. Five "
-      *              with no advancing
-           display "teleports are randomly scattered throughout the "
-           display "playing field. These devices will randomly "
-      *              with no advancing
-           display "transport whatever falls into them to another "
-           display "random location on the playing field."
-      *    display spaces
+                     with no advancing
+           display "running from robotic pursuers."
+           display "Fortunately, the walls and obstacles are fatal to "
+                     with no advancing
+           display "to the robots. The object of"
+           display "the game is to position the player where the robots"
+                     with no advancing
+           display " will crash into the"
+           display "obstacles or into each other. The walls and"
+                     with no advancing
+           display "obstacles are not fatal to the player"
+           display "because the computer does not allow the player to"
+                     with no advancing
+           display " make a move that brings him"
+           display "into contact with them. The computer also will not "
+                     with no advancing
+           display "allow the player to commit"
+           display "suicide by moving onto a space already occupied by "
+                     with no advancing
+           display "a robot. The robots blindly"
+           display "determine their direction of travel based solely on"
+                     with no advancing
+           display " the relative direction of"
+           display "the player. This causes the robots to eventually "
+                     with no advancing
+           display "stumble into the walls and"
+           display "obstacles on the playing field. Five teleports are"
+                     with no advancing
+           display "randomly scattered throughout"
+           display "the playing field. These devices will randomly "
+                     with no advancing
+           display "transport whatever falls into"
+           display "them to another random location on the playing "
+                     with no advancing
+           display "field."
+           display spaces
+           display "Continue? (Y/N)? "
+                    with no advancing
+           accept player-in
+           move function lower-case(player-in) to player-in
+
+           EVALUATE true
+               WHEN player-in = 'y'
+                  perform 122-instructions
+               WHEN OTHER
+                  CONTINUE
+           END-EVALUATE.
+
+       122-instructions.
            display "The teleports are (" teleport "). The robots are "
-      *              with no advancing
+                     with no advancing
            display "(" robot "). The player is the (" player "). The "
-           display "player can move:"
+                     with no advancing
+           display "player can"
+           display "move using the numeric keypad or the letter keys "
+                     with no advancing
+           display "shown below:"
            perform 410-display-controls.
+      *            varying n from 1 by 1 until n is equal to 8.
+      * Try to streamline display-controls
 
        130-pursuers-prompt.
            move min-pursuers to min-pursuers-out
@@ -401,7 +507,7 @@
            EVALUATE true
            when pursuers is less than min-pursuers
               display "Don't you want a challenge?!"
-              display "At least try to evade more than four pursuers."
+              display "At least try to evade more than one pursuer."
               display spaces
               go to 130-pursuers-prompt
 
@@ -477,6 +583,10 @@
            display tab-over "   VBN"
            display tab-over " SW   SE"
            display tab-over "    S"
+      *
+      *    display tab-over pc-lines(n)
+      * Try to streamline this code using the pc-lines table
+      *
            display spaces.
       *                                                               *
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -486,24 +596,40 @@
            subtract numberofdeadrobots from pursuers
                     giving pursuers-left
            display spaces
-           display col-ln-1
-           display col-ln-2
+      *    move spaces to sm-tab-over
+      * This line was used in an unsuccessful attempt to streamline
+      * display-controls and show them to the left of the playing field
+      *
+           display tiny-tab-over col-ln-1
+           display tiny-tab-over col-ln-2 col-ln-2 col-ln-2 col-ln-2
+                   with no advancing
+           display col-ln-2 col-ln-2 col-ln-2
            perform 421-display-row varying y from 1 by 1
                                until y is equal to max-y + 1
-           perform 410-display-controls
+      *    perform 410-display-controls
+      * Disabling the player's keyboard reference will save space on a
+      * 24-line display
       *
       * I do not feel that using DISPLAY variables for playerx and
       * playery in the next DISPLAY statement is necessary. The
       * "Pursuers: " label would shift left and right as the player's
       * coordinates changed. That would be a distraction.
       *
-           display "Player @" playerx ", " playery "          "
+           display "Player: @" playerx ", " playery " | "
                     with no advancing
            display "Pursuers: " pursuers-left
            display "  " playerscore with no advancing
-           display "                          " robotscore.
+           display "              |    " robotscore.
       *                                                               *
        421-display-row.
+      *    if y is less than 8 then
+      *       move pc-lines(y) to sm-tab-over
+      *    else
+      *       move spaces to sm-tab-over
+      *    end-if
+      * These lines were used in an unsuccessful attempt to streamline
+      * display-controls and show them to the left of the playing field
+      *
            display y ": " with no advancing
            display r (y).
       *                                                               *
@@ -534,7 +660,7 @@
            end-if
       *
       * Comment out these display lines after debugging
-            display "N: " n "|X: " x "|Y: " y.
+            display "N: " n " |X: " x " |Y: " y.
       *                                                               *
       * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
       *                    PLAYER'S MOVE SUBROUTINE                   *
@@ -546,8 +672,7 @@
            move playery to playery1
       *
       * Wait for the player to make a move
-           display "Enter move: "
-      *            with no advancing
+           display "Enter move: " with no advancing
            accept player-in
 
            EVALUATE true
@@ -729,12 +854,12 @@
               move x to pursuerx(n)
               move y to pursuery(n)
            END-EVALUATE
-      *    .
+           .
       * Failsafe: comment out after debugging:
-           display "Press 0 to exit or any other to continue:"
-           accept player-in
-           if player-in = "0" then
-              go to 330-return-to-operating-system
-           end-if
-           exit.
-
+      *    display "Press 0 to exit or any other to continue:"
+      *    accept player-in
+      *    if player-in = "0" then
+      *       go to 330-return-to-operating-system
+      *    end-if
+      *    exit.
+      *
