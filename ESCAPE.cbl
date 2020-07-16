@@ -135,23 +135,23 @@
       *               the player wins.
       *
        01 pursuer-coordinates.
-           02 pursuerx  pic 999 occurs 5 to 50 times
+           02 pursuerx  pic 999 occurs 2 to 50 times
                         depending on pursuers.
       * PURSUERX( ):  This one-dimensional array stores the X coordinate
       *               of each robot's position on the playing field.
       *
-           02 pursuerx1 pic 999 occurs 5 to 50 times
+           02 pursuerx1 pic 999 occurs 2 to 50 times
                         depending on pursuers.
       * PURSUERX1( ): This one-dimensional array stores the X coordinate
       *               of each robot's PREVIOUS position on the playing
       *               field.
       *
-           02 pursuery  pic 999 occurs 5 to 50 times
+           02 pursuery  pic 999 occurs 2 to 50 times
                         depending on pursuers.
       * PURSUERY( ):  This one-dimensional array stores the Y coordinate
       *               of each robot's position on the playing field.
       *
-           02 pursuery1 pic 999 occurs 5 to 50 times
+           02 pursuery1 pic 999 occurs 2 to 50 times
                         depending on pursuers.
       * PURSUERY1( ): This one-dimensional array stores the Y coordinate
       *               of each robot's PREVIOUS position on the playing
@@ -421,6 +421,7 @@
            END-EVALUATE.
 
        121-instructions.
+           display spaces
            display "The player is trapped in an enclosed labyrinth "
                      with no advancing
            display "running from robotic pursuers."
@@ -432,31 +433,31 @@
            display " will crash into the"
            display "obstacles or into each other. The walls and"
                      with no advancing
-           display "obstacles are not fatal to the player"
-           display "because the computer does not allow the player to"
+           display " obstacles are not fatal to the"
+           display "player because the computer does not allow the "
                      with no advancing
-           display " make a move that brings him"
-           display "into contact with them. The computer also will not "
+           display "player to make a move that brings"
+           display "him into contact with them. The computer also will "
                      with no advancing
-           display "allow the player to commit"
-           display "suicide by moving onto a space already occupied by "
+           display "not allow the player to"
+           display "commit suicide by moving onto a space already "
                      with no advancing
-           display "a robot. The robots blindly"
-           display "determine their direction of travel based solely on"
+           display "occupied by a robot. The robots"
+           display "blindly determine their direction of travel based "
                      with no advancing
-           display " the relative direction of"
-           display "the player. This causes the robots to eventually "
+           display "solely on the relative"
+           display "direction of the player. This causes the robots to "
                      with no advancing
-           display "stumble into the walls and"
-           display "obstacles on the playing field. Five teleports are"
+           display "eventually stumble into the"
+           display "walls and obstacles on the playing field."
+           display spaces
+           display "Five teleports are randomly scattered throughout "
                      with no advancing
-           display "randomly scattered throughout"
-           display "the playing field. These devices will randomly "
+           display "the playing field. These"
+           display "devices will randomly transport whatever falls into"
                      with no advancing
-           display "transport whatever falls into"
-           display "them to another random location on the playing "
-                     with no advancing
-           display "field."
+           display " them to another random"
+           display "location on the playing field."
            display spaces
            display "Continue? (Y/N)? "
                     with no advancing
@@ -471,6 +472,7 @@
            END-EVALUATE.
 
        122-instructions.
+           display spaces
            display "The teleports are (" teleport "). The robots are "
                      with no advancing
            display "(" robot "). The player is the (" player "). The "
