@@ -7,35 +7,31 @@ Energy calculation utility that calculates new flow, pressure, or horsepower
 from old values and new rpm
 
 BIGNUM.cbl
-******************************************************************
-*                                                                *
-*    BigNum v1.0 - a game by Dan Sanderson (aka Doc Brown)       *
-*    featured in JetBBS Casino Games c1996
-*                                                                *
-* Ported to Enterprise COBOL v6.3 for z/OS by Cliff Chipman      *
-*                                                                *
-* BigNum is a fairly simple game.  You have five places to put   *
-* digits to construct a five digit number.  These five digits    *
-* are picked randomly (from 0 to 9), one by one.  As they are    *
-* picked, you choose where to put it.  Once you place the digit, *
-* you can't move it.  The goal is to construct the largest       *
-* possible number with those digits.                             *
-*                                                                *
-* The board looks like this:                                     *
-*                                                                *
-*        a   b   c   d   e                                       *
-*      ---------------------                                     *
-*      |   |   |   |   |   |                                     *
-*      ---------------------                                     *
-*                                                                *
-*  To place a digit, simply press the letter.                    *
-*                                                                *
-* If you get the largest number possible, you get back twice     *
-* your bet!  If you get the first digit the largest you get 25%  *
-* of your bet back.                                              *
-*                                                                *
-******************************************************************
-
+    BigNum v1.0 - a game by Dan Sanderson (aka Doc Brown)       
+    featured in JetBBS Casino Games c1996
+                                                                
+ Ported to Enterprise COBOL v6.3 for z/OS by Cliff Chipman      
+                                                                
+ BigNum is a fairly simple game.  You have five places to put   
+ digits to construct a five digit number.  These five digits    
+ are picked randomly (from 0 to 9), one by one.  As they are    
+ picked, you choose where to put it.  Once you place the digit, 
+ you can't move it.  The goal is to construct the largest       
+ possible number with those digits.                             
+                                                                
+ The board looks like this:                                     
+                                                                
+        a   b   c   d   e                                       
+      ---------------------                                     
+      |   |   |   |   |   |                                     
+      ---------------------                                     
+                                                                
+  To place a digit, simply press the letter.                    
+                                                                
+ If you get the largest number possible, you get back twice     
+ your bet!  If you get the first digit the largest you get 25%  
+ of your bet back.                                              
+                                                                
 ENTHALPY.cbl
 "Enthalpy Calculator"      
 Energy calculation utility that calculates enthalpy of ambient air from dry 
