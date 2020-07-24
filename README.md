@@ -1,6 +1,10 @@
 # EnterpriseCOBOLv6.3
 Utilities written in Enterprise COBOL v6.3 for z/OS & Unix IBM Z mainframes:
 
+Please feel free to send me (Cliff Chipman) any questions or comments
+about this source code via the cobol-programming-course Slack channel:
+https://openmainframeproject.slack.com/
+
 AFFINITY.cbl
 "Affinity Laws Calculator"
 Energy calculation utility that calculates new flow, pressure, or horsepower 
