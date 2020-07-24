@@ -34,9 +34,9 @@ BIGNUM.cbl
 
 COMMBLDG.cbl
 "Commercial Building Annual HVAC Energy Consumption Simulator"
-This program uses KSBYTMY3 (Typical Meteorological Year) weather
-data to simulate the hour-by-hour cooling load of a pre-programmed
-commercial building.
+This program uses KSBYTMY3 Typical Meteorological Year weather data to
+simulate the hour-by-hour cooling load and electricity consumption of 
+a pre-programmed commercial building.
 
 ENTHALPY.cbl
 "Enthalpy Calculator"      
