@@ -31,7 +31,13 @@ BIGNUM.cbl
  If you get the largest number possible, you get back twice     
  your bet!  If you get the first digit the largest you get 25%  
  of your bet back.                                              
-                                                                
+
+COMMBLDG.cbl
+"Commercial Building Annual HVAC Energy Consumption Simulator"
+This program uses KSBYTMY3 (Typical Meteorological Year) weather
+data to simulate the hour-by-hour cooling load of a pre-programmed
+commercial building.
+
 ENTHALPY.cbl
 "Enthalpy Calculator"      
 Energy calculation utility that calculates enthalpy of ambient air from dry 
