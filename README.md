@@ -114,7 +114,7 @@ of a loan with monthly compounded interest, from the principal, the annual
 interest rate, and the term (in years)
 
 RANDOM.cbl
-demonstrates the COBOL intristic functions - RANDOM, and CURRENT-DATE
+demonstrates the COBOL intrinsic functions - RANDOM, and CURRENT-DATE
 
 SAVINGS.cbl
 "Monthly Savings Account Calculator"
