@@ -103,6 +103,12 @@ Energy calculation utility that calculates percentage fuel savings from the
 fuel efficiency of the old equipment and the fuel efficiency of the new
 equipment
 
+HACKRANK.cbl (v1.0)
+My first attempt at the Hacker News Rankings for Mainframe/COBOL Posts COBOL 
+Challenge under "COBOL Programming Course - Advanced Topics"
+It does not meet all of the challenge requirements, but I intend to return
+to it at a later date armed with additional knowledge.
+
 HEATINDX.cbl
 "Heat Index Calculator"
 Calculates the heat index from the outside air temperature and the relative
