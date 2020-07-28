@@ -140,52 +140,29 @@
       *
       ******************************************************************
       *
-      * I created this output dataset based on the attributes of the
-      * input dataset. Unfortunately, I could not get COBOL and/or JCL
-      * and/or z/OS to cooperate and WRITE the records to this dataset.
-      *
-      *                    (I am still learning.)
-      *
-      * After growing a few more gray hairs, I decided to table this
-      * part of the problem until I learned a little more about creating
-      * datasets. Meanwhile, I told JCL to send COBOL's FILTERED records
-      * records to SYSOUT.
-      *
-      * What is the difference between DISPLAYing a record on SYSOUT and
-      * WRITEing a record to SYSOUT?
-      *
-      * It turns out that SYSOUT is limited to 112 columns when it
-      * receives data via COBOL's DISPLAY command.
-      *
-      * WRITEing the data to SYSOUT allows wider reports (150 columns
-      * in this particular program.)
-      *
-      *//FILTERED  DD SYSOUT=*,OUTLIM=15000         < alternative write
-      *
       *                 Output file z/OS Dataset Attributes
-      *                         (did not work)
       *
       *zowe files ls ds "z81011.frntpage" -a --zosmf-p LearnCOBOL
       *-
       *  dsname: Z81011.FRNTPAGE
-      *  blksz:  15000
+      *  blksz:  27935
       *  catnm:  CATALOG.ZOS3
-      *  cdate:  2020/07/26
+      *  cdate:  2020/07/27
       *  dev:    3390
       *  dsorg:  PS
       *  edate:  ***None***
       *  extx:   1
-      *  lrecl:  150
-      *  migr:   NO
-      *  mvol:   N
+      *  lrecl:  151 <<< This record length needs to be 1 more than the
+      *  migr:   NO      record length specified in the data division
+      *  mvol:   N       file section.
       *  ovf:    NO
-      *  rdate:  2020/07/26
+      *  rdate:  2020/07/27
       *  recfm:  FBA
-      *  sizex:  7
-      *  spacu:  BLOCKS
-      *  used:   0
-      *  vol:    VPWRKE
-      *  vols:   VPWRKE
+      *  sizex:  3
+      *  spacu:  BYTES
+      *  used:   33
+      *  vol:    VPWRKC
+      *  vols:   VPWRKC
       *
       ******************************************************************
       *
