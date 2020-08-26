@@ -81,6 +81,15 @@ Time Value of Money calculation utility that calculates the Future Value of an
 investment from the Present Value, the annual interest rate, and the term (in 
 years)
 
+FIBOEXTD.cbl
+"Calculate the Fibonacci Sequence out to 31 digits"
+
+FIBONACI.cbl
+"Calculate the Fibonacci Sequence out to 18 digits"
+
+FIZZBUZZ.cbl
+Classic FizzBuzz sequence
+
 FLIPCOIN.cbl
 based on 'RANDOM' - it flips a binary virtual coin and displays "HEADS" or 
 "TAILS" on the stdout console based on the results
