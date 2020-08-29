@@ -136,8 +136,14 @@ interest rate, and the term (in years)
 RANDOM.cbl
 demonstrates the COBOL intrinsic functions - RANDOM, and CURRENT-DATE
 
+ROLL.cbl
+rolls a virtual six-sided die. Evaluated paragraphs display each hard coded
+die face in the PROCEDURE DIVISION based on the result of the cast.
+
 ROLLDICE.cbl
-rolls a virtual six-sided die
+rolls a virtual six-sided die. Uses 1D tables to define each die face in
+the DATA DIVISION. Evaluated paragraphs display each table based on the
+result of the cast.
 
 SAVINGS.cbl
 "Monthly Savings Account Calculator"
