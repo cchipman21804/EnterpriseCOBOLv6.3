@@ -136,6 +136,9 @@ interest rate, and the term (in years)
 RANDOM.cbl
 demonstrates the COBOL intrinsic functions - RANDOM, and CURRENT-DATE
 
+ROLLDICE.cbl
+rolls a virtual six-sided die
+
 SAVINGS.cbl
 "Monthly Savings Account Calculator"
 Time Value of Money calculation utility that calculates the future value of a
