@@ -9,7 +9,8 @@ https://openmainframeproject.slack.com/
 AFFINITY.cbl
 "Affinity Laws Calculator"
 Energy calculation utility that calculates new flow, pressure, or horsepower 
-from old values and new rpm
+from old values and new rpm.  AFFINITY runs interactively in a Unix shell or from
+the TSO READY prompt.
 
 BIGNUM.cbl
     BigNum v1.0 - a game by Dan Sanderson (aka Doc Brown)       
@@ -35,7 +36,8 @@ BIGNUM.cbl
                                                                 
  If you get the largest number possible, you get back twice     
  your bet!  If you get the first digit the largest you get 25%  
- of your bet back.                                              
+ of your bet back.  BIGNUM runs interactively in a Unix shell 
+ or from the TSO READY prompt.
 
 COMMBLDG.cbl
 "Commercial Building Annual HVAC Energy Consumption Simulator"
@@ -46,7 +48,8 @@ a pre-programmed commercial building.
 ENTHALPY.cbl
 "Enthalpy Calculator"      
 Energy calculation utility that calculates enthalpy of ambient air from dry 
-bulb temperature (in degF) and relative humidity (in%)
+bulb temperature (in degF) and relative humidity (in%). ENTHALPY  runs 
+interactively in a Unix shell or from the TSO READY prompt.
 
 ESCAPE.cbl
 ESCAPE is a beta version of a two-dimensional interactive game played on the
@@ -67,20 +70,21 @@ determine their direction of travel based solely on the relative direction of
 the player. This causes the robots to eventually stumble into the walls and 
 obstacles on the playing field. Five teleports are randomly scattered throughout
 the playing field.  These devices will randomly transport whatever falls into
-them to another random location on the playing field.
+them to another random location on the playing field. ESCAPE runs interactively 
+in a Unix shell or from the TSO READY prompt.
 
 FAGP.cbl
 "Find Annual Worth Given Present Value"
 Time Value of Money calculation utility that calculates the amount of money
 which someone can uniformly withdraw annually from an account from the
 initial investment (Present Value), the annual interest rate, and the term (in 
-years)
+years).  FAGP runs interactively in a Unix shell or from the TSO READY prompt.
 
 FFGP.cbl
 "Find Future Value Given Present Value"
 Time Value of Money calculation utility that calculates the Future Value of an 
 investment from the Present Value, the annual interest rate, and the term (in 
-years)
+years).  FFGP runs interactively in a Unix shell or from the TSO READY prompt.
 
 FIBOEXTD.cbl
 "Calculate the Fibonacci Sequence out to 31 digits"
@@ -93,25 +97,27 @@ Classic FizzBuzz sequence
 
 FLIPCOIN.cbl
 based on 'RANDOM' - it flips a binary virtual coin and displays "HEADS" or 
-"TAILS" on the stdout console based on the results
+"TAILS" on the stdout console based on the results. FLIPCOIN runs interactively 
+in a Unix shell or from the TSO READY prompt.
 
 FPGA.cbl
 "Find Present Value Given Annual Worth"
 Time Value of Money calculation utility that calculates the Present Value of an
 investment from the Annual Worth, the annual interest rate, and the term (in 
-years)
+years). FPGA runs interactively in a Unix shell or from the TSO READY prompt.
 
 FPGF.cbl
 "Find Present Value Given Future Value"
 Time Value of Money calculation utility that calculates the Present Value of an
 investment from the Future Value, the annual interest rate, and the term (in 
-years)
+years).  FPGF runs interactively in a Unix shell or from the TSO READY prompt.
 
 FUELSAVE.cbl
 "Fuel Savings Calculator"
 Energy calculation utility that calculates percentage fuel savings from the 
 fuel efficiency of the old equipment and the fuel efficiency of the new
-equipment
+equipment. FUELSAVE runs interactively in a Unix shell or from the TSO READY 
+prompt.
 
 HACKRANK.cbl (v1.0)
 My first attempt at the Hacker News Rankings for Mainframe/COBOL Posts COBOL 
@@ -122,16 +128,19 @@ to it at a later date armed with additional knowledge.
 HEATINDX.cbl
 "Heat Index Calculator"
 Calculates the heat index from the outside air temperature and the relative
-humidity
+humidity.  HEATINDX runs interactively in a Unix shell or from the TSO READY 
+prompt.
 
 HELLO.cbl
-the classic "Hello World!"
+the classic "Hello World!"  HELLO runs interactively in a Unix shell or from
+the TSO READY prompt.
 
 LOANPYMT.cbl
 "Monthly Loan Payment Calculator"
 Time Value of Money calculation utility that calculates the monthly payment
 of a loan with monthly compounded interest, from the principal, the annual
-interest rate, and the term (in years)
+interest rate, and the term (in years).  LOANPYMT runs interactively in a 
+Unix shell or from the TSO READY prompt.
 
 RANDOM.cbl
 demonstrates the COBOL intrinsic functions - RANDOM, and CURRENT-DATE
@@ -150,8 +159,10 @@ SAVINGS.cbl
 Time Value of Money calculation utility that calculates the future value of a
 savings account balance that is compounded monthly from the initial 
 investment (Present Value), the annual interest rate, and the term (in years).
-It accepts terms less than one year by entering decimal years.
+It accepts terms less than one year by entering decimal years. SAVINGS runs 
+interactively in a Unix shell or from the TSO READY prompt.
 
 WINDCHIL.cbl
 "Wind Chill Calculator"
 Calculates the wind chill from the outside air temperature and the wind speed.
+WINDCHIL runs interactively in a Unix shell or from the TSO READY prompt.
