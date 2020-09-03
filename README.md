@@ -100,6 +100,12 @@ based on 'RANDOM' - it flips a binary virtual coin and displays "HEADS" or
 "TAILS" on the stdout console based on the results. FLIPCOIN runs interactively 
 in a Unix shell or from the TSO READY prompt.
 
+FLTRFREQ.cbl
+Searches a sequential file (freq1993.txt) of FCC licensees from 1993 for records
+containing a field matching a search string. The matching records are written to
+another sequential file (FILTERED). The total number of matching records written 
+are displayed in SYSOUT.
+
 FPGA.cbl
 "Find Present Value Given Annual Worth"
 Time Value of Money calculation utility that calculates the Present Value of an
