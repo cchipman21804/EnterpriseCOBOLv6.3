@@ -39,6 +39,10 @@ BIGNUM.cbl
  of your bet back.  BIGNUM runs interactively in a Unix shell 
  or from the TSO READY prompt.
 
+CAPREACT.cbl
+Electronics utility that calculates the reactance of a capacitor
+in an AC circuit.
+
 COMMBLDG.cbl
 "Commercial Building Annual HVAC Energy Consumption Simulator"
 This program uses KSBYTMY3 Typical Meteorological Year weather data to
@@ -140,6 +144,10 @@ prompt.
 HELLO.cbl
 the classic "Hello World!"  HELLO runs interactively in a Unix shell or from
 the TSO READY prompt.
+
+INDREACT.cbl
+Electronics utility that calculates the reactance of an inductor
+in an AC circuit.
 
 LOANPYMT.cbl
 "Monthly Loan Payment Calculator"
