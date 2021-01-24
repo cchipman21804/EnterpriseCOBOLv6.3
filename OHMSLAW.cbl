@@ -220,11 +220,11 @@
                           move " milliamps" to unit2
 
                     when resistance IS GREATER THAN OR EQUAL TO 1000
-                          divide 1000 into resistance
+                          divide 1000 into current
                           move " kiloamps" to unit2
 
                     when resistance IS GREATER THAN OR EQUAL TO 1000000
-                          divide 1000000 into resistance
+                          divide 1000000 into current
                           move " megaamps" to unit2
                   end-evaluate
                   move current to current-out
