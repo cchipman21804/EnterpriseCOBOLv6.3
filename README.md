@@ -156,6 +156,9 @@ of a loan with monthly compounded interest, from the principal, the annual
 interest rate, and the term (in years).  LOANPYMT runs interactively in a 
 Unix shell or from the TSO READY prompt.
 
+OHMSLAW.cbl
+Performs Ohm's Law calculations
+
 RANDOM.cbl
 demonstrates the COBOL intrinsic functions - RANDOM, and CURRENT-DATE
 
