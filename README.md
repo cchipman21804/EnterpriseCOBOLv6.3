@@ -49,6 +49,11 @@ This program uses KSBYTMY3 Typical Meteorological Year weather data to
 simulate the hour-by-hour cooling load and electricity consumption of 
 a pre-programmed commercial building.
 
+DHWSAVE.cbl
+"Domestic Hot Water Savings Calculator"
+Energy savings utility that calculates the savings from various changes to
+domestic hot water usage.
+
 ENTHALPY.cbl
 "Enthalpy Calculator"      
 Energy calculation utility that calculates enthalpy of ambient air from dry 
