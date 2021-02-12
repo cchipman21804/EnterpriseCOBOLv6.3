@@ -167,6 +167,12 @@ Performs Ohm's Law calculations
 RANDOM.cbl
 demonstrates the COBOL intrinsic functions - RANDOM, and CURRENT-DATE
 
+RES2TEMP.cbl
+This algorithm converts the sensor resistance of a 3Kohm @77 degF NTC thermistor to an accurate temperature. The following Python3 formula was derived from the sensor
+specification sheet of a 3Kohm@77F NTC thermistor using an Excel spreadsheet of its resistance vs temperature table:
+ yF = 8.5557106e-23 * math.pow(x,6) - 5.68981649695e-18 * math.pow(x,5) + 1.50180247230692e-13 * math.pow(x,4) - 2.01541522576944e-9 * math.pow(x,3) +               
+      1.47906738776888e-5 * math.pow(x,2) - 6.2591776279401e-2 * x + 1.74508163989243e2                                  
+
 ROLL.cbl
 rolls a virtual six-sided die. Evaluated paragraphs display each hard coded
 die face in the PROCEDURE DIVISION based on the result of the cast.
