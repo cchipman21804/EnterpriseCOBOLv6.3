@@ -1,5 +1,5 @@
        IDENTIFICATION DIVISION.
-       PROGRAM-ID.    RES2TEMP.
+       PROGRAM-ID.    THRMST3K.
        AUTHOR.        CHIPMAN.
       *
       * These algorithms converts the resistance of a 3kohm@77F
