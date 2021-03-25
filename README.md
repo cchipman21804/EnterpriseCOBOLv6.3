@@ -189,6 +189,12 @@ investment (Present Value), the annual interest rate, and the term (in years).
 It accepts terms less than one year by entering decimal years. SAVINGS runs 
 interactively in a Unix shell or from the TSO READY prompt.
 
+THRMST3K.cbl
+This is a duplicate of RES2TEMP.cbl
+
+TOPACCTS.cbl
+This is my successful submission to the MTM2020 CBL exercise.  JCL is also found in the source code comments.
+
 WINDCHIL.cbl
 "Wind Chill Calculator"
 Calculates the wind chill from the outside air temperature and the wind speed.
