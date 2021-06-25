@@ -13,6 +13,10 @@ from old values and new rpm.  If old rpm equals new rpm, the new quantity
 is calculated using the pulley ratio.
 AFFINITY runs interactively in a Unix shell or from the TSO READY prompt.
 
+BELTLEN.cbl
+Calculates the length of a belt between two pulleys of known diameter and 
+distance apart.
+
 BIGNUM.cbl
     BigNum v1.0 - a game by Dan Sanderson (aka Doc Brown)       
     featured in JetBBS Casino Games c1996
