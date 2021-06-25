@@ -9,8 +9,9 @@ https://openmainframeproject.slack.com/
 AFFINITY.cbl
 "Affinity Laws Calculator"
 Energy calculation utility that calculates new flow, pressure, or horsepower 
-from old values and new rpm.  AFFINITY runs interactively in a Unix shell or from
-the TSO READY prompt.
+from old values and new rpm.  If old rpm equals new rpm, the new quantity
+is calculated using the pulley ratio.
+AFFINITY runs interactively in a Unix shell or from the TSO READY prompt.
 
 BIGNUM.cbl
     BigNum v1.0 - a game by Dan Sanderson (aka Doc Brown)       
