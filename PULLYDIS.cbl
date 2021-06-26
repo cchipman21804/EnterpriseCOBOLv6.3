@@ -168,7 +168,7 @@
            add pulley-diameter1 to pulley-diameter2
                  giving pulley-diameter-sum
 
-           subtract pulley-diameter2 from pulley-diameter1
+           subtract pulley-diameter1 from pulley-diameter2
                  giving pulley-diameter-diff
 
            compute x rounded = (4 * belt-length) -
