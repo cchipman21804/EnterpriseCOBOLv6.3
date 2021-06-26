@@ -169,6 +169,8 @@ Unix shell or from the TSO READY prompt.
 OHMSLAW.cbl
 Performs Ohm's Law calculations
 
+PULLYDIS.cbl Calculates the distance between two pulleys of known diameter and belt length.
+
 RANDOM.cbl
 demonstrates the COBOL intrinsic functions - RANDOM, and CURRENT-DATE
 
