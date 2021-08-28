@@ -48,6 +48,10 @@ CAPREACT.cbl
 Electronics utility that calculates the reactance of a capacitor
 in an AC circuit.
 
+COLLATZ.cbl
+Calculates the Collatz Conjecture sequence for a particular integer
+entered by the user
+
 COMMBLDG.cbl
 "Commercial Building Annual HVAC Energy Consumption Simulator"
 This program uses KSBYTMY3 Typical Meteorological Year weather data to
