@@ -170,6 +170,9 @@ of a loan with monthly compounded interest, from the principal, the annual
 interest rate, and the term (in years).  LOANPYMT runs interactively in a 
 Unix shell or from the TSO READY prompt.
 
+MIXEDAIR.cbl
+Calculates mixed air characteristics in an air handler
+
 OHMSLAW.cbl
 Performs Ohm's Law calculations
 
