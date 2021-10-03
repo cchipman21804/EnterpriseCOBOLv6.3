@@ -1,6 +1,6 @@
 //AFFINITY JOB 1,NOTIFY=&SYSUID
 //***************************************************/
-//COBRUN  EXEC IGYWCL
+//COMPLINK     EXEC IGYWCL
 //COBOL.SYSIN  DD DSN=&SYSUID..CBL(AFFINITY),DISP=SHR
 //LKED.SYSLMOD DD DSN=&SYSUID..LOAD(AFFINITY),DISP=SHR
 //***************************************************/
