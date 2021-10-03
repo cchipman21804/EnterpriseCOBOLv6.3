@@ -3,7 +3,7 @@
 //* COMPILE & LINK ONLY
 // SET COBPGM='BELTLEN'
 //***************************************************/
-//COBRUN  EXEC IGYWCL
+//COMPLINK  EXEC IGYWCL
 //COBOL.SYSIN  DD DSN=&SYSUID..CBL(&COBPGM),DISP=SHR
 //LKED.SYSLMOD DD DSN=&SYSUID..LOAD(&COBPGM),DISP=SHR
 //***************************************************/
