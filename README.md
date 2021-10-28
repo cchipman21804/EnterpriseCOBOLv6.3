@@ -170,6 +170,9 @@ of a loan with monthly compounded interest, from the principal, the annual
 interest rate, and the term (in years).  LOANPYMT runs interactively in a 
 Unix shell or from the TSO READY prompt.
 
+LUHN.cbl
+Checks the validity of a 16-digit credit card number
+
 MIXEDAIR.cbl
 Calculates mixed air characteristics in an air handler
 
