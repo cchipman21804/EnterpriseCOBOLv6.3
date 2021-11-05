@@ -1184,15 +1184,13 @@
 
        procedure division.
        100-main-paragraph.
+      *
+      * Initialize specific humidity table
            open input specific-humidity-file
            move 1 to table-idx
            perform 120-init-spec-hum-table
-      *      varying table-idx from 1 by 1 until EOF
-      * In the (hopefully) near future, the specific humidity table will
-      * be loaded from a more accurate file, instead of using this
-      * guess-timated hard-coded version.
-      *
            close specific-humidity-file
+      *
            perform 121-calc-design-parameters
            perform 125-calc-ventilation
            perform 110-display-specifications
