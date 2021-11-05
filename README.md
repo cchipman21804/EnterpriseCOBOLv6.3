@@ -54,9 +54,9 @@ entered by the user
 
 COMMBLDG.cbl
 "Commercial Building Annual HVAC Energy Consumption Simulator"
-This program uses KSBYTMY3 Typical Meteorological Year weather data to
-simulate the hour-by-hour cooling load and electricity consumption of 
-a pre-programmed commercial building.
+This program uses KSBYTMY3 (for Typical Meteorological Year weather data) and
+HUMRATIO (for specific humidity ratio data) to simulate the hour-by-hour cooling
+load and electricity consumption of a pre-programmed commercial building.
 
 DHWSAVE.cbl
 "Domestic Hot Water Savings Calculator"
