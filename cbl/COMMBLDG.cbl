@@ -8,7 +8,7 @@
       *                                                                *
       ******************************************************************
       *
-      *    Job Control Language
+      *                Job Control Language
       *
       *//COMMBLDG JOB 1,NOTIFY=&SYSUID
       *//***************************************************/
@@ -21,6 +21,7 @@
       *//RUN     EXEC PGM=COMMBLDG
       *//STEPLIB   DD DSN=&SYSUID..LOAD,DISP=SHR
       *//HRLYCOND  DD DSN=&SYSUID..KSBYTMY3,DISP=SHR
+      *//HUMRATIO  DD DSN=&SYSUID..HUMRATIO,DISP=SHR
       *//SYSOUT    DD SYSOUT=*,OUTLIM=15000
       *//CEEDUMP   DD DUMMY
       *//SYSUDUMP  DD DUMMY
@@ -28,18 +29,139 @@
       *// ELSE
       *// ENDIF
       *
+      ******************************************************************
+      *
+      * Add version number & date to output file beginning with v1.0
+      * All versions prior to 2020/07/31 11:10:40 (CDT) are beta
+      * versions (v0.xx)
+      *
+      ******************************************************************
+      *
+      *                        CHANGE LOG
+      *
+      *(v1.01) Added occupancy hours to report under building
+      *        specifications - 07/31/2020
+      *
+      *(v1.02) Added humidity ratio file - 11/5/2021
+      *
+      ******************************************************************
+      *
+      *
+      *                      UPCOMING IMPROVEMENTS
+      *
+      ******************************************************************
+      *
+      * Add support for full TMY3 (MTS2) & PSM3 datasets
+      * https://nsrdb.nrel.gov/about/tmy.html
+      *
+      * NREL National Solar Radiation Database (NSRDB)
+      * https://maps.nrel.gov/nsrdb-viewer
+      *
+      ******************************************************************
+      *
+      * Add support to activate HVAC economizer function when its
+      * capacity exceeds the building's current cooling load
+      *
+      ******************************************************************
+      *
+      * Add support for OpenEI utility rates:
+      * https://openei.org/wiki/Utility_Rate_Database
+      *
+      * Download all approved rates:
+      * https://openei.org/apps/USURDB/download/usurdb.csv.gz
+      *
+      ******************************************************************
+      *
+      * Add support to calculate the hourly PV energy output in kWh of
+      * an optimally tilted PV array
+      * https://pvpmc.sandia.gov/modeling-steps/1-weather-design-inputs/
+      *
+      ******************************************************************
+      *
+      * Calculate the slope (m) and the constant (b) of the building's
+      * cooling load linear equation (y = mx+b) based on the building's
+      * balance point temperature and its outdoor design temperature?
+      *
+      ******************************************************************
+      *
+      * Calculate the slope (m) and the constant (b) of the chiller's
+      * EER linear equation (y = mx+b)?
+      *
+      * EER slope formula: y = -0.107x +19.82
+      *             where x = OSAT in degF
+      *                   y = EER-calc
+      *
+      ******************************************************************
+      *
+      * Re-calculate the supply air temp based on the available cooling
+      * capacity of the air cooling coil, the air flow, actual deltaT
+      *
+      * Re-calculate the chiller capacity based on chiller specification
+      * limitations
+      *
+      ******************************************************************
+      *
+      * Calculate current hourly building cooling load based on the
+      * number of fractional degree days (degree hour?) calculated from
+      * the current TMY3 hour record?
+      *
+      *    see pages 400-402 of "Air Conditioning Principles and
+      *    Systems" for details
+      *
+      *    DD = degree days
+      *
+      *    deltaT = difference in temperature between the average
+      *             outdoor temperature & the hypothetical average
+      *             indoor temperature
+      *
+      *    t = number of days the outdoor temperature is above the
+      *        building's balance point (usually estimated as 65 degF,
+      *        but varies based on an individual building's design
+      *        parameters)
+      *
+      *    DD = deltaT * t
+      *
+      *    A = surface area (in sqft) of building components with
+      *        opposite surfaces exposed to both conditioned space and
+      *        ambient weather conditions
+      *
+      *    U = factor of thermal conductance of the building materials
+      *        used on a particular surface
+      *
+      *    Qseason = U * A * DD * 24(hrs/day)
+      *
+      *    Q = design heating/cooling load (BTU/hr)
+      *
+      *    Qo = heat energy consumed during time period under
+      *         consideration
+      *
+      *            Q
+      *    Qo - -------- * DD * 24(hrs/day)
+      *          deltaT
+      *
+      * It should be possible to granularize the calculation to an
+      * hourly basis by removing the 24(hrs/day) factor from the
+      * equation.
+      *
+      ******************************************************************
 
        environment division.
        input-output section.
        file-control.
            select hourly-condx-file assign to HRLYCOND
                     organization is sequential.
-      *     select specific-humidity-file assign to SPECIHUM
+      *
+      *     select tmy3-hourly-condx-file assign to TMY3
       *              organization is sequential.
-
+      *
+           select specific-humidity-file assign to HUMRATIO
+                    organization is sequential.
+      *
        data division.
        file section.
        fd  hourly-condx-file recording mode f.
+      *
+      * This is a VERY small subset of TMY3 dataset fields
       * Time (HH:MM),Dry-bulb (C),RHum (%)
        01  tmy3-record-in.
            02 tmy3-date-in                     pic x(10).
@@ -50,14 +172,24 @@
            02 filler                           pic x.
            02 tmy3-RHum-pct-in                 pic xxx.
            02 filler                           pic x(54).
-
-      * fd  specific-humidity-file recording mode f.
-      * 01  psychrometric-chart.
-      *     02 specific-humidity-in             pic xxx.
-      *     02 filler                           pic x(77).
+      *
+      *fd tmy3-hourly-condx-file recording mode v
+      *    record varying from 90 to 623.
+      *
+      * This will accept a full TMY3 data record
+      * 01  tmy3-record-in                     pic x(623).
+      *
+      * A specific humidity file containing the 100% relative humidity
+      * moisture content of the air (in gr/LB) at various temperatures
+      * between 30 degF and 87 degF:
+       fd  specific-humidity-file recording mode f.
+       01  psychrometric-chart.
+           02 specific-humidity-record         pic x(80).
 
        working-storage section.
 
+       01  software-version-release            pic x(8)
+                                               value "(v01.02)".
        01  last-rec                            pic x.
            88 EOF                              value "Y".
 
@@ -75,12 +207,127 @@
            02 tmy3-DBTemp-degC                 pic s99v9
                                                sign is leading separate.
            02 tmy3-RHum-pct                    pic 999.
-
+      *
+      ******************************************************************
+      *
+      * TMY3 dataset format:
+      *
+      * Record #1: Description of Record #2 field contentss
+      * Record #2: Location, units of measure
+      * Record #3: TMY3 record labels
+      * Record #4+: TMY3 data starts here (either q 1 hr or q 1/2 hr)
+      *
+      *    02 fieldname4-fieldname2
+      * fieldname4: description of data when read from TMY record 4+
+      * fieldname2: description of data when read from TMY record 2
+      *
+      ******************************************************************
+      *
+      * 01 tmy3-record.
+      *    02 year                    pic x(4).
+      *    02 month                   pic x(2).
+      *    02 day                     pic x(2).
+      *    02 hour                    pic x(2).
+      *    02 minute                  pic x(2).
+      *
+      * Extract decimal latitude and decimal longitude from these next
+      * two fields while processing record #2
+      *
+      * The next three fields can be used to calculate the energy
+      * production (in kWh) of an optimally tilted PV array.
+      *
+      * DHI: Diffuse Horizontal Irradiance is given in watts/sq meter
+      *    02 DHI-latitude            pic x(7).
+      *
+      * DNI: Direct Normal Irradiance is given in watts/sq meter
+      *    02 DNI-longitude           pic x(7).
+      *
+      * GHI: Global Horizontal Irradiance is given in watts/sq meter
+      *    02 GHI-timezone            pic x(4).
+      *
+      * Extract location elevation given in meters from the next field
+      * while processing record #2
+      *    02 clearskyDHI-elevation   pic x(3).
+      *    02 clearskyDNI-localtz     pic x(4).
+      *    02 clearskyGHI             pic x(4).
+      *
+      * Cloud Type  0: Clear
+      *             1: Probably clear
+      *             2: Fog
+      *             3: Water
+      *             4: Super-cooled water
+      *             5: Mixed
+      *             6: Opaque ice
+      *             7: Cirrus
+      *             8: Overlapping
+      *             9: Overshooting
+      *            10: Unknown
+      *            11: Dust
+      *            12: Smoke
+      *           -15: N/A
+      *    02 cloud-type              pic x(3).
+      *
+      * specify pic s99v9 SIGN IS LEADING SEPARATE for any numeric
+      * variable that may eventually receive the information in this
+      * field.
+      *    02 dew-point               pic x(5).
+      *
+      * The next field can be used to calculate the energy production
+      * (in kWh) of an optimally tilted PV array
+      *    02 solar-zenith-angle      pic x(6).
+      *
+      * Fill Flag:  0: N/A
+      *             1: Missing image
+      *             2: Low irradiance
+      *             3: Exceeds Clearsky
+      *             4: Missing cloud properties
+      *             5: Rayleigh violation
+      *    02 fillflag                pic x(3).
+      *
+      * The next field can be used to calculate the energy production
+      * (in kWh) of an optimally tilted PV array
+      *    02 surfacealbedo           pic x(4).
+      *
+      * windspeed is given in meters per second
+      *    02 windspeed               pic x(4).
+      *
+      * precip is given in centimeters
+      *    02 precip                  pic x(3).
+      *
+      * winddirection is given in degrees from true north
+      *    02 winddirection           pic x(3).
+      *
+      *    02 tmy3-RHum-pct           pic x(3).
+      *
+      * specify pic s99v9 SIGN IS LEADING SEPARATE for any numeric
+      * variable that may eventually receive the information in this
+      * field.
+      *    02 tmy3-DBTemp-degC        pic x(5).
+      *    02 barometricpressure      pic x(4).
+      *
+      * specify pic 99v9999 for any numeric variable that may eventually
+      * receive the information in this field.
+      * Global Horizontal UV Urradiance (280-400nm)
+      *    02 ghuvia                  pic x(7).
+      *
+      * specify pic 99v9999 for any numeric variable that may eventually
+      * receive the information in this field.
+      * Global Horizontal UV Urradiance (285-385nm)
+      *    02 ghuvib                  pic x(7).
+      *
+      * outside air temp in degF, derived from tmy3 dry bulb
+      * temperature (degC) using the formula
+      *             compute DBTemp-degF = (9 / 5) *
+      *                      function numval(tmy3-DBTemp-degC) + 32
        01  DBTemp-degF                         pic s999v9
                                                sign is leading separate.
-
-       01 outside-air-rh                       pic 999v99.
-       01 outside-air-humidity-ratio           pic 999v99.
+      *
+      * numeric value of outside air relative humidity, derived from
+      *             compute outside-air-rh =
+      *                      function numval(tmy3-RHum-pct)
+      * decimal places smaller than units will not be needed
+       01  outside-air-rh                      pic 999v99.
+       01  outside-air-humidity-ratio          pic 999v99.
 
       ******************* SPECIFIC HUMIDITY TABLE **********************
       *
@@ -91,8 +338,19 @@
       * The specific humidity values are based on the data available
       * from the TRANE Psychrometric Chart Form Number 1-43.190 Jan.1983
       *
+       01 ws-spec-hum-record.
+           02 ws-deg-f                          pic xxx.
+           02 filler                            pic x.
+           02 ws-spec-hum                       pic x(6).
+           02 filler                            pic x(70).
+      *
+      * The index for the specific-humidity-table is found by adding one
+      * to the temperature in degF.
+      * For example, the COBOL table index begins at 1, however, the
+      * specific humidity returned by the table is for a temperature of
+      * 0 degF.
        01 specific-humidity-table.
-           02 specifichumidity occurs 58 TIMES pic 999.
+           02 specifichumidity occurs 121 TIMES pic 999.
       *
       ***************** EXISTING SYSTEM PARAMETERS *********************
       *                                                                *
@@ -106,6 +364,9 @@
       *                                                                *
       *                Open from 11:00am to 2:00am                     *
       *                                                                *
+       01 opening-hour                         pic 99 value 11.
+       01 closing-hour                         pic 99 value 2.
+      *
       * Maximum occupancy (# persons).
        01 max-occupancy                        pic 9(4) value 1200.
 
@@ -124,7 +385,7 @@
 
       * Outside Air Ventilation volume flow rate for occupancy in
       * CFM/person.
-       01 Vdot-per-person                      pic 99 value 5.
+       01 Vdot-per-person                      pic 99 value  5.
 
       * Outside Air ventilation volume flow rate for off-gassing in
       * CFM/sqft.
@@ -422,14 +683,18 @@
       ************************ DISPLAYED FIELDS ************************
        01 section-headers.
            02 section-header-1.
-              03 filler                        pic x(20)
-                                   value "********************".
+              03 filler                        pic x(16)
+                                  value "****************".
               03 filler                        pic xx value spaces.
-              03 filler                        pic x(36)
-                           value "COMMERCIAL BUILDING SIMULATOR BEGINS".
+              03 filler                        pic x(29)
+                                  value "COMMERCIAL BUILDING SIMULATOR".
+              03 filler                        pic x value space.
+              03 svr-out                       pic x(8).
+              03 filler                        pic x value space.
+              03 filler                        pic x(6) value "BEGINS".
               03 filler                        pic xx value spaces.
-              03 filler                        pic x(20)
-                                   value "********************".
+              03 filler                        pic x(15)
+                                               value "***************".
            02 section-header-2.
               03 filler                        pic x(28)
                                    value "----------------------------".
@@ -467,8 +732,8 @@
               03 filler                        pic x value space.
               03 filler                        pic x(6) value "people".
               03 filler                        pic x(7) value spaces.
-              03 filler                        pic x(11)
-                                   value "Floor Area:".
+              03 filler                        pic x(15)
+                                   value "Floor Area    :".
               03 filler                        pic x value space.
               03 floor-area-out                pic zzz,zz9.
               03 filler                        pic x value space.
@@ -481,6 +746,14 @@
               03 cooling-load-max-out          pic z,zz9.
               03 filler                        pic x value space.
               03 filler                        pic x(4) value "tons".
+              03 filler                        pic x(9) value spaces.
+              03 filler                        pic x(15)
+                                   value "Occupied Hours:".
+              03 filler                        pic x value space.
+              03 opening-hour-out              pic 99.
+              03 filler                        pic x(6) value "00 to ".
+              03 closing-hour-out              pic 99.
+              03 filler                        pic xx value "00".
 
        01 system-specs-header.
            02 sshd-1.
@@ -911,12 +1184,15 @@
 
        procedure division.
        100-main-paragraph.
+           open input specific-humidity-file
+           move 1 to table-idx
            perform 120-init-spec-hum-table
       *      varying table-idx from 1 by 1 until EOF
       * In the (hopefully) near future, the specific humidity table will
       * be loaded from a more accurate file, instead of using this
       * guess-timated hard-coded version.
       *
+           close specific-humidity-file
            perform 121-calc-design-parameters
            perform 125-calc-ventilation
            perform 110-display-specifications
@@ -943,6 +1219,11 @@
       *     display "in Enterprise COBOL v6.3 for z/OS"
       *     display spaces
       *     display "Initializing psychrometric chart" with no advancing
+      *
+           move software-version-release to svr-out
+           move opening-hour to opening-hour-out
+           move closing-hour to closing-hour-out
+      *
            display section-header-1
            display spaces
            display bshd-1
@@ -976,6 +1257,22 @@
            display section-header-2
            display rpthd-1
            display rpthd-2.
+
+       120-init-spec-hum-table.
+           read specific-humidity-file into ws-spec-hum-record
+              at end move "Y" to last-rec
+           end-read
+           if function test-numval(specific-humidity-record(1:1))
+              is equal to zero then
+      *        move specific-humidity-record to ws-spec-hum-record
+              unstring specific-humidity-record
+                 delimited by ","
+                 into  ws-deg-f
+                       ws-spec-hum
+              end-unstring
+              move ws-spec-hum to specifichumidity(table-idx)
+              add 1 to table-idx
+           end-if.
 
        121-calc-design-parameters.
       *
@@ -1223,15 +1520,17 @@
                  function numval(tmy3-hour)
            compute minute-out =
                  function numval(tmy3-minute)
-
-           if hour-out IS LESS THAN 11 AND
-              hour-out IS GREATER THAN OR EQUAL TO 2 then
+      *
+      * Is the building open or closed? Occupied or not occupied?
+           if hour-out IS LESS THAN opening-hour AND
+              hour-out IS GREATER THAN OR EQUAL TO closing-hour then
               move "N" to occupancy-flag
            else
               move "Y" to occupancy-flag
            end-if
            move occupancy-flag to occupancy-flag-out
-
+      *
+      * Set the thermostat based on occupancy flag
            if occupied then
               move Tra-occupied to return-air-temp
            else
@@ -1243,7 +1542,8 @@
       *     compute mixed-air-temp rounded =
       *              Vdot-mixed-return-air * return-air-temp +
       *              Vdot-outside-air * DBTemp-degF / Vdot-supply-air
-      * COMPUTE statement gives erroneous results
+      * COMPUTE statement gives erroneous results, but individual
+      * calculation steps give the correct result
            multiply Vdot-mixed-return-air by return-air-temp
                     giving numerator
            multiply Vdot-outside-air by DBTemp-degF
@@ -1395,125 +1695,125 @@
        900-display-output-record.
            display energy-record-out.
 
-      * Read this from a file in the future:
-       120-init-spec-hum-table.
+      * Read this from a file in the future: (v1.02)
+      * 120-init-spec-hum-table.
       *     display dot with no advancing
-           move 24 to specifichumidity(1)
+      *     move 24 to specifichumidity(1)
       *     display dot with no advancing
-           move 25 to specifichumidity(2)
+      *     move 25 to specifichumidity(2)
       *     display dot with no advancing
-           move 26 to specifichumidity(3)
+      *     move 26 to specifichumidity(3)
       *     display dot with no advancing
-           move 27 to specifichumidity(4)
+      *     move 27 to specifichumidity(4)
       *     display dot with no advancing
-           move 28 to specifichumidity(5)
+      *     move 28 to specifichumidity(5)
       *     display dot with no advancing
-           move 30 to specifichumidity(6)
+      *     move 30 to specifichumidity(6)
       *     display dot with no advancing
-           move 31 to specifichumidity(7)
+      *     move 31 to specifichumidity(7)
       *     display dot with no advancing
-           move 32 to specifichumidity(8)
+      *    move 32 to specifichumidity(8)
       *     display dot with no advancing
-           move 33 to specifichumidity(9)
+      *    move 33 to specifichumidity(9)
       *     display dot with no advancing
-           move 35 to specifichumidity(10)
+      *    move 35 to specifichumidity(10)
       *     display dot with no advancing
-           move 36 to specifichumidity(11)
+      *    move 36 to specifichumidity(11)
       *     display dot with no advancing
-           move 38 to specifichumidity(12)
+      *    move 38 to specifichumidity(12)
       *     display dot with no advancing
-           move 39 to specifichumidity(13)
+      *    move 39 to specifichumidity(13)
       *     display dot with no advancing
-           move 41 to specifichumidity(14)
+      *    move 41 to specifichumidity(14)
       *     display dot with no advancing
-           move 42 to specifichumidity(15)
+      *    move 42 to specifichumidity(15)
       *     display dot with no advancing
-           move 44 to specifichumidity(16)
+      *    move 44 to specifichumidity(16)
       *     display dot with no advancing
-           move 46 to specifichumidity(17)
+      *    move 46 to specifichumidity(17)
       *     display dot with no advancing
-           move 48 to specifichumidity(18)
+      *    move 48 to specifichumidity(18)
       *     display dot with no advancing
-           move 50 to specifichumidity(19)
+      *    move 50 to specifichumidity(19)
       *     display dot with no advancing
-           move 52 to specifichumidity(20)
+      *    move 52 to specifichumidity(20)
       *     display dot with no advancing
-           move 53 to specifichumidity(21)
+      *    move 53 to specifichumidity(21)
       *     display dot with no advancing
-           move 56 to specifichumidity(22)
+      *    move 56 to specifichumidity(22)
       *     display dot with no advancing
-           move 58 to specifichumidity(23)
+      *    move 58 to specifichumidity(23)
       *     display dot with no advancing
-           move 60 to specifichumidity(24)
+      *    move 60 to specifichumidity(24)
       *     display dot with no advancing
-           move 62 to specifichumidity(25)
+      *    move 62 to specifichumidity(25)
       *     display dot with no advancing
-           move 64 to specifichumidity(26)
+      *    move 64 to specifichumidity(26)
       *     display dot with no advancing
-           move 67 to specifichumidity(27)
+      *    move 67 to specifichumidity(27)
       *     display dot with no advancing
-           move 70 to specifichumidity(28)
+      *    move 70 to specifichumidity(28)
       *     display dot with no advancing
-           move 72 to specifichumidity(29)
+      *    move 72 to specifichumidity(29)
       *     display dot with no advancing
-           move 74 to specifichumidity(30)
+      *    move 74 to specifichumidity(30)
       *     display dot with no advancing
-           move 77 to specifichumidity(31)
+      *    move 77 to specifichumidity(31)
       *     display dot with no advancing
-           move 80 to specifichumidity(32)
+      *    move 80 to specifichumidity(32)
       *     display dot with no advancing
-           move 83 to specifichumidity(33)
+      *    move 83 to specifichumidity(33)
       *     display dot with no advancing
-           move 86 to specifichumidity(34)
+      *    move 86 to specifichumidity(34)
       *     display dot with no advancing
-           move 89 to specifichumidity(35)
+      *    move 89 to specifichumidity(35)
       *     display dot with no advancing
-           move 92 to specifichumidity(36)
+      *    move 92 to specifichumidity(36)
       *     display dot with no advancing
-           move 96 to specifichumidity(37)
+      *    move 96 to specifichumidity(37)
       *     display dot with no advancing
-           move 99 to specifichumidity(38)
+      *    move 99 to specifichumidity(38)
       *     display dot with no advancing
-           move 103 to specifichumidity(39)
+      *    move 103 to specifichumidity(39)
       *     display dot with no advancing
-           move 107 to specifichumidity(40)
+      *    move 107 to specifichumidity(40)
       *     display dot with no advancing
-           move 110 to specifichumidity(41)
+      *    move 110 to specifichumidity(41)
       *     display dot with no advancing
-           move 114 to specifichumidity(42)
+      *    move 114 to specifichumidity(42)
       *     display dot with no advancing
-           move 118 to specifichumidity(43)
+      *    move 118 to specifichumidity(43)
       *     display dot with no advancing
-           move 123 to specifichumidity(44)
+      *    move 123 to specifichumidity(44)
       *     display dot with no advancing
-           move 127 to specifichumidity(45)
+      *    move 127 to specifichumidity(45)
       *     display dot with no advancing
-           move 132 to specifichumidity(46)
+      *    move 132 to specifichumidity(46)
       *     display dot with no advancing
-           move 136 to specifichumidity(47)
+      *    move 136 to specifichumidity(47)
       *     display dot with no advancing
-           move 141 to specifichumidity(48)
+      *    move 141 to specifichumidity(48)
       *     display dot with no advancing
-           move 146 to specifichumidity(49)
+      *    move 146 to specifichumidity(49)
       *     display dot with no advancing
-           move 151 to specifichumidity(50)
+      *    move 151 to specifichumidity(50)
       *     display dot with no advancing
-           move 156 to specifichumidity(51)
+      *    move 156 to specifichumidity(51)
       *     display dot with no advancing
-           move 161 to specifichumidity(52)
+      *    move 161 to specifichumidity(52)
       *     display dot with no advancing
-           move 167 to specifichumidity(53)
+      *    move 167 to specifichumidity(53)
       *     display dot with no advancing
-           move 172 to specifichumidity(54)
+      *    move 172 to specifichumidity(54)
       *     display dot with no advancing
-           move 178 to specifichumidity(55)
+      *    move 178 to specifichumidity(55)
       *     display dot with no advancing
-           move 185 to specifichumidity(56)
+      *    move 185 to specifichumidity(56)
       *     display dot with no advancing
-           move 191 to specifichumidity(57)
+      *    move 191 to specifichumidity(57)
       *     display dot with no advancing
-           move 197 to specifichumidity(58).
-
+      *    move 197 to specifichumidity(58).
+      *
       ******************************************************************
       *                                                                *
       *            TYPICAL COMMERCIAL/INDUSTRIAL AIR HANDLER           *
