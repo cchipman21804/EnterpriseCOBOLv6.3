@@ -58,6 +58,14 @@ This program uses KSBYTMY3 (for Typical Meteorological Year weather data) and
 HUMRATIO (for specific humidity ratio data) to simulate the hour-by-hour cooling
 load and electricity consumption of a pre-programmed commercial building.
 
+CNWYLIFE.cbl
+"Conway's Game of Life"
+This program uses CONWAYIN as the seed for subsequent generations of Conway's
+Game of Life algorithm.  The current contents of CONWAYIN represent a "glider"
+in the lower-right-hand corner of the grid.  The output shows the glider making
+its way across the screen until it collides with the boundary and stabilizes into
+a block at generation #140.
+
 DHWSAVE.cbl
 "Domestic Hot Water Savings Calculator"
 Energy savings utility that calculates the savings from various changes to
