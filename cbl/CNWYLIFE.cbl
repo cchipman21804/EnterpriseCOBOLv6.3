@@ -68,7 +68,7 @@
        01 max-columns                               PIC 99  VALUE 80.
        01 max-gen                                   PIC 999 VALUE 357.
       * 357 generations on an 80x40 grid uses 14,993 lines on SYSOUT.
-       01 living-cell                               PIC X   VALUE "O".
+       01 living-cell                               PIC X   VALUE "*".
        01 dead-cell                                 PIC X   VALUE SPACE.
        01 boundary                                  PIC X   VALUE "X".
       *
