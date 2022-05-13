@@ -66,6 +66,25 @@ in the lower-right-hand corner of the grid.  The output shows the glider making
 its way across the screen until it collides with the boundary and stabilizes into
 a block at generation #140.
 
+DCBNTEST.CBL
+"Decimal Binary Test"
+From page #10 of "More BASIC Computer Games - TRS-80 Edition"
+written in 1980 by David H. Ahl.
+This game tests your skills in binary-to-decimal and
+decimal-to-binary conversion.  You are given twenty conversion
+trials.  Numbers are chosen randomly and your score is printed
+at the end.  The answer to any conversion you miss is displayed:
+if the next conversion is presented, you may assume you got the
+previous one correct.
+There are several possible modifications for this program such
+as timing the response, allowing the user to specify the number
+range, checking for duplicate numbers, or extending it to other
+bases.
+This program was written by Ted Park of Pacific Union College.
+It originally appeared in the Mar/Apr 1975 issue of Creative
+Computing magazine.
+Ported to COBOL by, Clifford A. Chipman 5/13/2022
+
 DHWSAVE.cbl
 "Domestic Hot Water Savings Calculator"
 Energy savings utility that calculates the savings from various changes to
