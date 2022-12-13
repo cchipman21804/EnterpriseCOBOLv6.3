@@ -163,6 +163,12 @@ Time Value of Money calculation utility that calculates the Present Value of an
 investment from the Future Value, the annual interest rate, and the term (in 
 years).  FPGF runs interactively in a Unix shell or from the TSO READY prompt.
 
+FRSTFIRE.cbl
+"Forest Fire algorithm"
+This algorithm creates a random 80x40 'orchard'.  Empty cells grow new trees
+at random.  Cells with trees, catch on fire at random.  Trees adjacent to
+burning trees catch on fire and turn into empty cells.
+
 FUELSAVE.cbl
 "Fuel Savings Calculator"
 Energy calculation utility that calculates percentage fuel savings from the 
