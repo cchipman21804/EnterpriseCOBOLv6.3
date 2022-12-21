@@ -1,10 +1,8 @@
 # EnterpriseCOBOLv6.3
 Utilities written in Enterprise COBOL v6.3 for z/OS & Unix IBM Z mainframes:
 
-Each CBL source code file is accompanied by an appropriate JCL file.
-Please feel free to send me (Cliff Chipman) any questions or comments
-about this source code via the cobol-programming-course Slack channel:
-https://openmainframeproject.slack.com/
+Each CBL source code file is accompanied by an appropriate JCL file.  Some
+programs require data files, which are located in the dat folder.
 
 AFFINITY.cbl
 "Affinity Laws Calculator"
