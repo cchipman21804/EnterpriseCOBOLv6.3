@@ -6,9 +6,11 @@
       * known as the card game "Memory".  Find matches by uncovering
       * two cells in the 2-D table.
       *
+      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
       * Dr. Seay - This approach is still full of bugs and is
       * incomplete.  I am certain that you and your students can find
       * a much better way to build this project.
+      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
       *
        DATA DIVISION.
        WORKING-STORAGE SECTION.
