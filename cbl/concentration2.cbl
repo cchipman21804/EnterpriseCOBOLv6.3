@@ -46,7 +46,7 @@
            05 NUMERIC-SYMBOLS                     PIC X(10) VALUE
            "0123456789".
            05 OTHER-SYMBOLS                       PIC X(33) VALUE
-           "~()<+|&!$*;^-/บ,%_>?`:#@'=\[]{}ล".
+           "~()โ€บ<+|&!$*;^-/ยบ,%_>?`:#@'=\[]{}ร…".
       *                                      A total of 95 symbols.
        01 NUMBER-OF-SYMBOLS                       PIC 99    VALUE 95.
       *
@@ -102,8 +102,6 @@
            STOP RUN.
 
        100-INITIALIZE.
-      *     DISPLAY "ALL-SYMBOLS: " ALL-SYMBOLS
-      *     DISPLAY "AVAILABLE-SYMBOLS: " AVAILABLE-SYMBOLS
       *
       * Set TABLE-SIZE based on the value stored in DIFFICULTY
            ADD 2 TO DIFFICULTY GIVING TABLE-SIZE
@@ -150,6 +148,8 @@
       * TABLE-SIZE * TABLE-SIZE NEEDS TO BE AN EVEN NUMBER FOR THIS
       * ALGORITHM TO WORK PROPERLY.
            PERFORM LOOP-COUNTER TIMES
+      *
+      *     ******************** CAUTION ********************
       * This PERFORM UNTIL statement can create an infinite loop
               PERFORM WITH TEST AFTER
                  UNTIL SYM(RANDOM-SYMBOL-IDX) IS NOT EQUAL TO SPACE
