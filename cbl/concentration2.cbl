@@ -46,7 +46,7 @@
            05 NUMERIC-SYMBOLS                     PIC X(10) VALUE
            "0123456789".
            05 OTHER-SYMBOLS                       PIC X(33) VALUE
-           "~()โ€บ<+|&!$*;^-/ยบ,%_>?`:#@'=\[]{}ร…".
+           "~()<+|&!$*;^-/บ,%_>?`:#@'=\[]{}ล".
       *                                      A total of 95 symbols.
        01 NUMBER-OF-SYMBOLS                       PIC 99    VALUE 95.
       *
@@ -61,6 +61,12 @@
       *
       * Stores the contents of the current random deck
        01 CARD-TABLE.
+           05 r     OCCURS 3 to 11 TIMES DEPENDING ON TABLE-SIZE.
+              10 c  OCCURS 3 to 11 TIMES DEPENDING ON TABLE-SIZE
+                                                  PIC X     VALUE SPACE.
+      *
+      * Used for display
+       01 BLANK-TABLE.
            05 r     OCCURS 3 to 11 TIMES DEPENDING ON TABLE-SIZE.
               10 c  OCCURS 3 to 11 TIMES DEPENDING ON TABLE-SIZE
                                                   PIC X     VALUE SPACE.
@@ -106,10 +112,21 @@
       * Set TABLE-SIZE based on the value stored in DIFFICULTY
            ADD 2 TO DIFFICULTY GIVING TABLE-SIZE
       *
-      * Set LOOP-COUNTER based on EVEN/ODD of TABLE-SIZE SQUARED
-      * LOOP-COUNTER needs to be an even number for the
-      * POPULATE-CARD-TABLE paragraph to work properly without errors
+      *     ******************** CAUTION ********************
+      * The PERFORM UNTIL statements (DO...UNTIL LOOP) in other
+      * paragraphs can create infinite loops if the LOOP-COUNTER
+      * calculation within this paragraph is incorrect!
+      *
+      * Calculate LOOP-COUNTER based on EVEN/ODD result of:
+      * 1/2 of TABLE-SIZE SQUARED
+      *
+      * LOOP-COUNTER needs to be an even number AND less than the value
+      * of TABLE-SIZE SQUARED in order for the POPULATE-CARD-TABLE
+      * paragraph to work properly without errors and without causing
+      * an infinite loop
+      *
            COMPUTE LOOP-COUNTER = TABLE-SIZE * TABLE-SIZE * 0.5
+      * If LOOP-COUNTER is odd, use the next lowest even number
            IF FUNCTION MOD(LOOP-COUNTER 2) IS NOT EQUAL TO ZERO THEN
               SUBTRACT 1 FROM LOOP-COUNTER
            END-IF
@@ -145,24 +162,45 @@
       * This paragraph populates 2 empty cells of CARD-TABLE with a
       * random symbol
        121-POPULATE-CARD-TABLE.
-      * TABLE-SIZE * TABLE-SIZE NEEDS TO BE AN EVEN NUMBER FOR THIS
+      * 1/2 of TABLE-SIZE SQUARED NEEDS TO BE AN EVEN NUMBER FOR THIS
       * ALGORITHM TO WORK PROPERLY.
            PERFORM LOOP-COUNTER TIMES
       *
       *     ******************** CAUTION ********************
-      * This PERFORM UNTIL statement can create an infinite loop
+      * These PERFORM UNTIL statements (DO...UNTIL LOOP) can create
+      * infinite loops if the LOOP-COUNTER calculation within the
+      * 100-INITIALIZE paragraph is incorrect!
+      *
+      * If all of the printable symbols are used up, this condition
+      * will trigger an infinite loop as the CPU continues to search
+      * for a non-existent printable character within the table.
+      *
               PERFORM WITH TEST AFTER
                  UNTIL SYM(RANDOM-SYMBOL-IDX) IS NOT EQUAL TO SPACE
                  COMPUTE RANDOM-SYMBOL-IDX = FUNCTION INTEGER (
                                              FUNCTION RANDOM * MAX + 1)
               END-PERFORM
+      *
+      * The value of IDX determines whether to log RANDOM-X & RANDOM-Y
+      * in CURRENT-X1 & CURRENT-Y1 or in CURRENT-X2 & CURRENT-Y2 in
+      * the CHEATSHT report.
               MOVE 1 TO IDX
               PERFORM 2 TIMES
+      *
+      *     ******************** CAUTION ********************
+      * These PERFORM UNTIL statements (DO...UNTIL LOOP) can create
+      * infinite loops if the LOOP-COUNTER calculation within the
+      * 100-INITIALIZE paragraph is incorrect!
+      *
+      * If CARD-TABLE runs out of EMPTY cells, this condition will
+      * trigger an infinite loop as the CPU continues to search for a
+      * non-existent SPACE character within the table.
       *
       * If the cell in CARD-TABLE is an empty space, populate it
       * with the random symbol
                  PERFORM WITH TEST AFTER
-                    UNTIL C(RANDOM-Y, RANDOM-X) IS EQUAL TO SPACE
+                    UNTIL C IN CARD-TABLE(RANDOM-Y, RANDOM-X)
+                          IS EQUAL TO SPACE
                     COMPUTE RANDOM-X = FUNCTION INTEGER (
                                        FUNCTION RANDOM * TABLE-SIZE + 1)
 
@@ -170,7 +208,8 @@
                                        FUNCTION RANDOM * TABLE-SIZE + 1)
                  END-PERFORM
       *
-      * Log the current symbol positions
+      * Log the current symbol and its positions in CHEATSHT
+                 MOVE SYM(RANDOM-SYMBOL-IDX) TO CURRENT-SYMBOL
                  IF IDX IS LESS THAN 2 THEN
                     MOVE RANDOM-X TO CURRENT-X1
                     MOVE RANDOM-Y TO CURRENT-Y1
@@ -179,14 +218,16 @@
                     MOVE RANDOM-X TO CURRENT-X2
                     MOVE RANDOM-Y TO CURRENT-Y2
                  END-IF
-                 MOVE SYM(RANDOM-SYMBOL-IDX) TO CURRENT-SYMBOL
       *
       * Populate the CARD-TABLE with the current random symbol
-                 MOVE SYM(RANDOM-SYMBOL-IDX) TO C(RANDOM-Y, RANDOM-X)
+                 MOVE SYM(RANDOM-SYMBOL-IDX) TO
+                      C IN CARD-TABLE(RANDOM-Y, RANDOM-X)
               END-PERFORM
       *
-      * Remove used symbol from 1-D table & write the log to the file
+      * Remove used symbol from 1-D table
               MOVE SPACE TO SYM(RANDOM-SYMBOL-IDX)
+      *
+      * and write the log to the file
               MOVE WS-REPORT-RECORD TO REPORT-RECORD
               WRITE REPORT-RECORD
            END-PERFORM.
@@ -198,5 +239,5 @@
            DISPLAY "   12345678901"
            PERFORM VARYING IDX FROM 1 BY 1
                    UNTIL IDX IS GREATER THAN TABLE-SIZE
-                   DISPLAY IDX " " R(IDX)
+                   DISPLAY IDX " " R IN CARD-TABLE(IDX)
            END-PERFORM.
