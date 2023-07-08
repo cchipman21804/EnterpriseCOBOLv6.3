@@ -11,11 +11,17 @@
        FILE-CONTROL.
            SELECT SYMBOL-TABLE-REPORT
            ASSIGN TO CHEATSHT.
+
+           SELECT POPULATED-CARD-TABLE
+           ASSIGN TO CARDTABL.
       *
        DATA DIVISION.
        FILE SECTION.
        FD  SYMBOL-TABLE-REPORT RECORDING MODE F.
        01 REPORT-RECORD                           PIC X(80).
+
+       FD POPULATED-CARD-TABLE RECORDING MODE F.
+       01 CARD-TABLE-RECORD                       PIC X(80).
       *
        WORKING-STORAGE SECTION.
        01 WS-REPORT-RECORD.
@@ -29,13 +35,21 @@
            05 FILLER                              PIC X VALUE ','.
            05 CURRENT-Y2                          PIC XX.
            05 FILLER                              PIC X(67) VALUE SPACE.
+
+       01 WS-CARD-TABLE-RECORD                    PIC X(80) VALUE SPACE.
       *
-      * The difficulty is an integer from 1 to 9.  It determines the
+      * The difficulty is an integer from 1 to 11.  It determines the
       * dimensions of the two-dimentional table.  TABLE-SIZE is
       * computed by adding 2 to difficulty.  This produces a 2-D table
-      * from 3x3 to 11x11.
+      * from 3x3 to 13x13.
       *
-       01 DIFFICULTY                              PIC 9     VALUE 9.
+      * Any difficulty level from 12 - 14 results in very long execution
+      * times while the CPU attempts to randomly find empty cells and
+      * available symbols (both of which become more elusive as the
+      * table size increases with the difficulty level and available
+      * symbols are used).
+      *
+       01 DIFFICULTY                              PIC 99    VALUE 11.
        01 TABLE-SIZE                              PIC 99.
       *
       * Stores every printable symbol used in the game & provides a
@@ -48,10 +62,13 @@
            05 OTHER-SYMBOLS                       PIC X(33) VALUE
            "~()›<+|&!$*;^-/º,%_>?`:#@'=\[]{}Å".
       *                                      A total of 95 symbols.
+      * NUMBER-OF-SYMBOLS helps generate a random index to pick a
+      * particular symbol from the AVAILABLE-SYMBOLS table.
        01 NUMBER-OF-SYMBOLS                       PIC 99    VALUE 95.
       *
       * Stores the symbols which are available for population. Replace
-      * used symbols with a space character.
+      * used symbols with a space character to avoid duplication within
+      * the CARD-TABLE.
        01 AVAILABLE-SYMBOLS.
            05 SYM  OCCURS 1 TO 99 TIMES DEPENDING ON NUMBER-OF-SYMBOLS
                                                   PIC X.
@@ -61,14 +78,14 @@
       *
       * Stores the contents of the current random deck
        01 CARD-TABLE.
-           05 r     OCCURS 3 to 11 TIMES DEPENDING ON TABLE-SIZE.
-              10 c  OCCURS 3 to 11 TIMES DEPENDING ON TABLE-SIZE
+           05 r     OCCURS 3 to 13 TIMES DEPENDING ON TABLE-SIZE.
+              10 c  OCCURS 3 to 13 TIMES DEPENDING ON TABLE-SIZE
                                                   PIC X     VALUE SPACE.
       *
       * Used for display
        01 BLANK-TABLE.
-           05 r     OCCURS 3 to 11 TIMES DEPENDING ON TABLE-SIZE.
-              10 c  OCCURS 3 to 11 TIMES DEPENDING ON TABLE-SIZE
+           05 r     OCCURS 3 to 13 TIMES DEPENDING ON TABLE-SIZE.
+              10 c  OCCURS 3 to 13 TIMES DEPENDING ON TABLE-SIZE
                                                   PIC X     VALUE SPACE.
       *
       * Randomize the game
@@ -86,28 +103,38 @@
       *
        01 SEED                                 PIC 9(10).
       *
-      * MAX is the maximum random number I want to generate
-       01 MAX                                  PIC 99.
        01 RANDOM-SYMBOL-IDX                    PIC 99.
        01 RANDOM-X                             PIC 99.
        01 RANDOM-Y                             PIC 99.
       *
        PROCEDURE DIVISION.
        MAIN.
-           OPEN OUTPUT SYMBOL-TABLE-REPORT
-           PERFORM 100-INITIALIZE
+           PERFORM 100-OPEN-FILES
+           PERFORM 105-INITIALIZE
            PERFORM 110-GENERATE-SEEDS
       *
       * Populate the 2-D table CARD-TABLE with the randomly generated
       * symbols. Place the symbols in two random locations WHICH ARE
       * ALREADY EMPTY (SPACE)
       *
-           PERFORM 121-POPULATE-CARD-TABLE
+           PERFORM 120-POPULATE-CARD-TABLE
            PERFORM 130-DISPLAY-CARD-TABLE
            CLOSE SYMBOL-TABLE-REPORT
+           CLOSE POPULATED-CARD-TABLE
            STOP RUN.
-
-       100-INITIALIZE.
+      *
+       100-OPEN-FILES.
+           OPEN OUTPUT SYMBOL-TABLE-REPORT
+      * Write header row to report
+           MOVE "  X1,Y1 X2,Y2" TO REPORT-RECORD
+           WRITE REPORT-RECORD
+      *
+           OPEN OUTPUT POPULATED-CARD-TABLE.
+      * Think about how to write header rows here by using the same
+      * sub-paragraphs as 130-DISPLAY-CARD-TABLE which automatically
+      * change the headers based on the difficulty level.
+      *
+       105-INITIALIZE.
       *
       * Set TABLE-SIZE based on the value stored in DIFFICULTY
            ADD 2 TO DIFFICULTY GIVING TABLE-SIZE
@@ -117,57 +144,47 @@
       * paragraphs can create infinite loops if the LOOP-COUNTER
       * calculation within this paragraph is incorrect!
       *
-      * Calculate LOOP-COUNTER based on EVEN/ODD result of:
-      * 1/2 of TABLE-SIZE SQUARED
-      *
-      * LOOP-COUNTER needs to be an even number AND less than the value
+      * LOOP-COUNTER needs to be less than or equal to the value
       * of TABLE-SIZE SQUARED in order for the POPULATE-CARD-TABLE
       * paragraph to work properly without errors and without causing
       * an infinite loop
       *
            COMPUTE LOOP-COUNTER = TABLE-SIZE * TABLE-SIZE * 0.5
-      * If LOOP-COUNTER is odd, use the next lowest even number
-           IF FUNCTION MOD(LOOP-COUNTER 2) IS NOT EQUAL TO ZERO THEN
-              SUBTRACT 1 FROM LOOP-COUNTER
-           END-IF
       *
-      * Set MAX to NUMBER-OF-SYMBOLS.  MAX helps generate a random index
-      * to pick a particular symbol from that 1-D table.
-           MOVE NUMBER-OF-SYMBOLS TO MAX
-      *
-      * Populate SYMBOL table with printable symbols --
+      * Populate AVAILABLE-SYMBOLS table with printable symbols --
            MOVE ALL-SYMBOLS TO AVAILABLE-SYMBOLS.
 
        110-GENERATE-SEEDS.
       *
-      * Obtain system date & time to help seed RANDOM function
+      * Obtain system date & time to help seed the RANDOM function
            MOVE FUNCTION CURRENT-DATE TO DATETIME
       *
       * Generate SEED from DATETIME
            COMPUTE SEED = MO * DD * HH * MM * SS * HUND-SEC
       *
-      * Lower SEED to within maximum limit for RANDOM function
+      * Lower SEED to within maximum limit for the RANDOM function
            SUBTRACT 801076519 FROM SEED
       *
       * Initialize seeded pseudo-random number sequences
-           COMPUTE RANDOM-SYMBOL-IDX = FUNCTION INTEGER (
-                                       FUNCTION RANDOM(SEED) * MAX + 1)
+           COMPUTE RANDOM-SYMBOL-IDX =
+                    FUNCTION INTEGER (
+                    FUNCTION RANDOM(SEED) * NUMBER-OF-SYMBOLS + 1)
 
-           COMPUTE RANDOM-X = FUNCTION INTEGER (
-                              FUNCTION RANDOM(SEED) * TABLE-SIZE + 1)
+           COMPUTE RANDOM-X =
+                    FUNCTION INTEGER (
+                    FUNCTION RANDOM(SEED) * TABLE-SIZE + 1)
 
-           COMPUTE RANDOM-Y = FUNCTION INTEGER (
-                              FUNCTION RANDOM(SEED) * TABLE-SIZE + 1).
+           COMPUTE RANDOM-Y =
+                    FUNCTION INTEGER (
+                    FUNCTION RANDOM(SEED) * TABLE-SIZE + 1).
       *
+       120-POPULATE-CARD-TABLE.
       * This paragraph populates 2 empty cells of CARD-TABLE with a
       * random symbol
-       121-POPULATE-CARD-TABLE.
-      * 1/2 of TABLE-SIZE SQUARED NEEDS TO BE AN EVEN NUMBER FOR THIS
-      * ALGORITHM TO WORK PROPERLY.
            PERFORM LOOP-COUNTER TIMES
       *
       *     ******************** CAUTION ********************
-      * These PERFORM UNTIL statements (DO...UNTIL LOOP) can create
+      * These PERFORM UNTIL statements (DO...UNTIL loops) can create
       * infinite loops if the LOOP-COUNTER calculation within the
       * 100-INITIALIZE paragraph is incorrect!
       *
@@ -177,8 +194,9 @@
       *
               PERFORM WITH TEST AFTER
                  UNTIL SYM(RANDOM-SYMBOL-IDX) IS NOT EQUAL TO SPACE
-                 COMPUTE RANDOM-SYMBOL-IDX = FUNCTION INTEGER (
-                                             FUNCTION RANDOM * MAX + 1)
+                 COMPUTE RANDOM-SYMBOL-IDX =
+                          FUNCTION INTEGER (
+                          FUNCTION RANDOM * NUMBER-OF-SYMBOLS + 1)
               END-PERFORM
       *
       * The value of IDX determines whether to log RANDOM-X & RANDOM-Y
@@ -188,7 +206,7 @@
               PERFORM 2 TIMES
       *
       *     ******************** CAUTION ********************
-      * These PERFORM UNTIL statements (DO...UNTIL LOOP) can create
+      * These PERFORM UNTIL statements (DO...UNTIL loops) can create
       * infinite loops if the LOOP-COUNTER calculation within the
       * 100-INITIALIZE paragraph is incorrect!
       *
@@ -232,12 +250,91 @@
               WRITE REPORT-RECORD
            END-PERFORM.
       *
-      * This paragraph displays the contents of CARD-TABLE with row
-      * and column headers
        130-DISPLAY-CARD-TABLE.
-           DISPLAY "   00000000011"
-           DISPLAY "   12345678901"
+      *
+      * This paragraph displays the contents of CARD-TABLE with row
+      * and column headers  on the screen and writes the contents to an
+      * output file
+      * Think about how to dispaly header rows here by using the same
+      * sub-paragraphs as 105-OPEN-FILES which automatically
+      * change the headers based on the difficulty level.
+           DISPLAY "DIFFICULTY: " DIFFICULTY
+           STRING "DIFFICULTY: " DIFFICULTY DELIMITED BY SIZE
+                    INTO WS-CARD-TABLE-RECORD
+           END-STRING
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD
+      *
+           DISPLAY "TABLE-SIZE: " TABLE-SIZE
+           STRING "TABLE-SIZE: " TABLE-SIZE DELIMITED BY SIZE
+                    INTO WS-CARD-TABLE-RECORD
+           END-STRING
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD
+      *
+           DISPLAY "LOOP-COUNTER: " LOOP-COUNTER
+           STRING "LOOP-COUNTER: " LOOP-COUNTER DELIMITED BY SIZE
+                    INTO WS-CARD-TABLE-RECORD
+           END-STRING
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD
+      *
+           DISPLAY "CARD-TABLE CONTENTS:"
+           MOVE "CARD-TABLE CONTENTS:" TO WS-CARD-TABLE-RECORD
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD
+      *
+           DISPLAY SPACES
+           MOVE SPACES TO WS-CARD-TABLE-RECORD
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD
+      *
+           DISPLAY " X 0000000001111"
+           MOVE " X 0000000001111" TO WS-CARD-TABLE-RECORD
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD
+      *
+           DISPLAY "   1234567890123"
+           MOVE "   1234567890123" TO WS-CARD-TABLE-RECORD
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD
+      *
+           DISPLAY "Y +-------------+"
+           MOVE "Y +-------------+" TO WS-CARD-TABLE-RECORD
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD
+      *
+      * Hyphens and trailing plus sign remain in WS-CARD-TABLE-RECORD
+      * at lower difficulty levels (Level 1 shown in comments below)
+      *
+      * CARD-TABLE CONTENTS:
+      *
+      *  X 00000000011
+      *    12345678901
+      * Y +-----------+
+      * 01|RY›|-------+
+      * 02|›9 |-------+
+      * 03|Y9R|-------+
+      *   +-----------+
+      *
+      * So, clear it with SPACES first
+           MOVE SPACES TO WS-CARD-TABLE-RECORD
+      *
            PERFORM VARYING IDX FROM 1 BY 1
                    UNTIL IDX IS GREATER THAN TABLE-SIZE
-                   DISPLAY IDX " " R IN CARD-TABLE(IDX)
-           END-PERFORM.
+                   DISPLAY IDX "|" R IN CARD-TABLE(IDX) "|"
+                   STRING IDX "|" R IN CARD-TABLE(IDX) "|"
+                          DELIMITED BY SIZE
+                          INTO WS-CARD-TABLE-RECORD
+                   END-STRING
+                   MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+                   WRITE CARD-TABLE-RECORD
+           END-PERFORM
+           DISPLAY "  +-------------+"
+           MOVE "  +-------------+" TO WS-CARD-TABLE-RECORD
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD
+           DISPLAY SPACES
+      * This variable should only be logged on the SYSOUT display
+      * because it is too long for an 80-column data set
+           DISPLAY "AVAILABLE-SYMBOLS: " AVAILABLE-SYMBOLS.
