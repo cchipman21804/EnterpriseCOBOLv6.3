@@ -56,8 +56,8 @@ This program uses KSBYTMY3 (for Typical Meteorological Year weather data) and
 HUMRATIO (for specific humidity ratio data) to simulate the hour-by-hour cooling
 load and electricity consumption of a pre-programmed commercial building.
 
-Concentration.cbl
-An incomplete and buggy implementation of the children's game "Concentration"
+Concentration?.cbl
+An incomplete "work-in-progress" implementation of the children's game "Concentration"
 also known as "Memory"
 
 CNWYLIFE.cbl
