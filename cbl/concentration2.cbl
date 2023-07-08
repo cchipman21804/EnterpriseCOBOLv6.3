@@ -88,6 +88,32 @@
               10 c  OCCURS 3 to 13 TIMES DEPENDING ON TABLE-SIZE
                                                   PIC X     VALUE SPACE.
       *
+      * Initial values for table headers
+       77  ELEM-ALPHA-BET-HEADER                  PIC X(13) VALUE
+           "ABCDEFGHIJKLM".
+
+       77  ELEM-NUM-HEADER-1                      PIC X(13) VALUE
+           "0000000001111".
+
+       77  ELEM-NUM-HEADER-2                      PIC X(13) VALUE
+           "1234567890123".
+
+       01 LINE-HEADER.
+           05 LN    OCCURS 3 TO 13 TIMES DEPENDING ON TABLE-SIZE
+                                                  PIC X     VALUE "-".
+
+       01 ALPHA-BET-HEADER.
+           05 ALPHA OCCURS 3 TO 13 TIMES DEPENDING ON TABLE-SIZE
+                                                  PIC X.
+
+       01 NUM-HEADER-1.
+           05 NUM-1 OCCURS 3 TO 13 TIMES DEPENDING ON TABLE-SIZE
+                                                  PIC X.
+
+       01 NUM-HEADER-2.
+           05 NUM-2 OCCURS 3 TO 13 TIMES DEPENDING ON TABLE-SIZE
+                                                  PIC X.
+
       * Randomize the game
        01 datetime.
            02 yyyy      pic 9(4).
@@ -130,9 +156,6 @@
            WRITE REPORT-RECORD
       *
            OPEN OUTPUT POPULATED-CARD-TABLE.
-      * Think about how to write header rows here by using the same
-      * sub-paragraphs as 130-DISPLAY-CARD-TABLE which automatically
-      * change the headers based on the difficulty level.
       *
        105-INITIALIZE.
       *
@@ -152,7 +175,12 @@
            COMPUTE LOOP-COUNTER = TABLE-SIZE * TABLE-SIZE * 0.5
       *
       * Populate AVAILABLE-SYMBOLS table with printable symbols --
-           MOVE ALL-SYMBOLS TO AVAILABLE-SYMBOLS.
+           MOVE ALL-SYMBOLS TO AVAILABLE-SYMBOLS
+      *
+      * Populate table headers with initial values --
+           MOVE ELEM-ALPHA-BET-HEADER TO ALPHA-BET-HEADER
+           MOVE ELEM-NUM-HEADER-1 TO NUM-HEADER-1
+           MOVE ELEM-NUM-HEADER-2 TO NUM-HEADER-2.
 
        110-GENERATE-SEEDS.
       *
@@ -255,9 +283,6 @@
       * This paragraph displays the contents of CARD-TABLE with row
       * and column headers  on the screen and writes the contents to an
       * output file
-      * Think about how to dispaly header rows here by using the same
-      * sub-paragraphs as 105-OPEN-FILES which automatically
-      * change the headers based on the difficulty level.
            DISPLAY "DIFFICULTY: " DIFFICULTY
            STRING "DIFFICULTY: " DIFFICULTY DELIMITED BY SIZE
                     INTO WS-CARD-TABLE-RECORD
@@ -289,36 +314,7 @@
            MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
            WRITE CARD-TABLE-RECORD
       *
-           DISPLAY " X 0000000001111"
-           MOVE " X 0000000001111" TO WS-CARD-TABLE-RECORD
-           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
-           WRITE CARD-TABLE-RECORD
-      *
-           DISPLAY "   1234567890123"
-           MOVE "   1234567890123" TO WS-CARD-TABLE-RECORD
-           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
-           WRITE CARD-TABLE-RECORD
-      *
-           DISPLAY "Y +-------------+"
-           MOVE "Y +-------------+" TO WS-CARD-TABLE-RECORD
-           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
-           WRITE CARD-TABLE-RECORD
-      *
-      * Hyphens and trailing plus sign remain in WS-CARD-TABLE-RECORD
-      * at lower difficulty levels (Level 1 shown in comments below)
-      *
-      * CARD-TABLE CONTENTS:
-      *
-      *  X 00000000011
-      *    12345678901
-      * Y +-----------+
-      * 01|RY›|-------+
-      * 02|›9 |-------+
-      * 03|Y9R|-------+
-      *   +-----------+
-      *
-      * So, clear it with SPACES first
-           MOVE SPACES TO WS-CARD-TABLE-RECORD
+           PERFORM 131-CARD-TABLE-HEADER-ROWS
       *
            PERFORM VARYING IDX FROM 1 BY 1
                    UNTIL IDX IS GREATER THAN TABLE-SIZE
@@ -330,11 +326,56 @@
                    MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
                    WRITE CARD-TABLE-RECORD
            END-PERFORM
-           DISPLAY "  +-------------+"
-           MOVE "  +-------------+" TO WS-CARD-TABLE-RECORD
+           DISPLAY "Y +" LINE-HEADER "+"
+           STRING "Y +" LINE-HEADER "+" DELIMITED BY SIZE
+                 INTO WS-CARD-TABLE-RECORD
+           END-STRING
            MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
            WRITE CARD-TABLE-RECORD
            DISPLAY SPACES
       * This variable should only be logged on the SYSOUT display
       * because it is too long for an 80-column data set
            DISPLAY "AVAILABLE-SYMBOLS: " AVAILABLE-SYMBOLS.
+
+       131-CARD-TABLE-HEADER-ROWS.
+           DISPLAY " X " NUM-HEADER-1
+           STRING " X " NUM-HEADER-1 DELIMITED BY SIZE
+                 INTO WS-CARD-TABLE-RECORD
+           END-STRING
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD
+      *
+           DISPLAY "   " NUM-HEADER-2
+           STRING "   " NUM-HEADER-2 DELIMITED BY SIZE
+                 INTO WS-CARD-TABLE-RECORD
+           END-STRING
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD
+      *
+           DISPLAY "Y +" LINE-HEADER "+"
+           STRING "Y +" LINE-HEADER "+" DELIMITED BY SIZE
+                 INTO WS-CARD-TABLE-RECORD
+           END-STRING
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD.
+      *
+      * When numeric headers were hard-coded into the DISPLAY and MOVE
+      * statements in earlier versions, hyphens and trailing plus signs
+      * remained in WS-CARD-TABLE-RECORD at lower difficulty levels.
+      * (Level 1 shown in comments below)
+      *
+      * CARD-TABLE CONTENTS:
+      *
+      *  X 00000000011
+      *    12345678901
+      * Y +-----------+
+      * 01|RY›|-------+
+      * 02|›9 |-------+
+      * 03|Y9R|-------+
+      *   +-----------+
+      *
+      * So, it was necessary to clear WS-CARD-TABLE-RECORD with SPACES
+      * first.  The elementary (77) headers and the variable length
+      * header tables in the DATA DIVISION make this step unnecessary.
+      *     MOVE SPACES TO WS-CARD-TABLE-RECORD
+      *
