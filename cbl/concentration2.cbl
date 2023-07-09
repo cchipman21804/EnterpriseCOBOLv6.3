@@ -6,6 +6,7 @@
       * known as the card game "Memory".  Find matches by uncovering
       * two cells in the 2-D table.
       *
+      * These files will be removed after debugging is complete.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
@@ -72,9 +73,6 @@
        01 AVAILABLE-SYMBOLS.
            05 SYM  OCCURS 1 TO 99 TIMES DEPENDING ON NUMBER-OF-SYMBOLS
                                                   PIC X.
-
-       01 IDX                                     PIC 99    VALUE 1.
-       01 LOOP-COUNTER                            PIC 999.
       *
       * Stores the contents of the current random deck
        01 CARD-TABLE.
@@ -127,11 +125,21 @@
            02 tzh       pic 99.
            02 tzm       pic 99.
       *
-       01 SEED                                 PIC 9(10).
+       01 SEED                                    PIC 9(10).
       *
-       01 RANDOM-SYMBOL-IDX                    PIC 99.
-       01 RANDOM-X                             PIC 99.
-       01 RANDOM-Y                             PIC 99.
+       01 RANDOM-SYMBOL-IDX                       PIC 99.
+       01 RANDOM-X                                PIC 99.
+       01 RANDOM-Y                                PIC 99.
+
+       01 IDX                                     PIC 99    VALUE 1.
+       01 IDX-OUT                                 PIC Z9.
+       01 LOOP-COUNTER                            PIC 999.
+       01 LOCATION-1-COORD                        PIC XX.
+       01 LOCATION-2-COORD                        PIC XX.
+       01 X-LOC-1                                 PIC 99.
+       01 Y-LOC-1                                 PIC 99.
+       01 X-LOC-2                                 PIC 99.
+       01 Y-LOC-2                                 PIC 99.
       *
        PROCEDURE DIVISION.
        MAIN.
@@ -144,7 +152,20 @@
       * ALREADY EMPTY (SPACE)
       *
            PERFORM 120-POPULATE-CARD-TABLE
-           PERFORM 130-DISPLAY-CARD-TABLE
+           PERFORM 130-LOG-CARD-TABLE
+           ACCEPT LOCATION-1-COORD
+           ACCEPT LOCATION-2-COORD
+           PERFORM 150-PROCESS-USER-INPUT
+           PERFORM 140-DISPLAY-BLANK-TABLE
+      *
+      * Display result
+           IF C IN BLANK-TABLE(Y-LOC-1, X-LOC-1) IS EQUAL TO
+              C IN BLANK-TABLE(Y-LOC-2, X-LOC-2) THEN
+                 DISPLAY "You found a match!"
+           ELSE
+                 DISPLAY "These do NOT match!"
+           END-IF
+      *
            CLOSE SYMBOL-TABLE-REPORT
            CLOSE POPULATED-CARD-TABLE
            STOP RUN.
@@ -177,7 +198,7 @@
       * Populate AVAILABLE-SYMBOLS table with printable symbols --
            MOVE ALL-SYMBOLS TO AVAILABLE-SYMBOLS
       *
-      * Populate table headers with initial values --
+      * Populate header tables with initial elementary values --
            MOVE ELEM-ALPHA-BET-HEADER TO ALPHA-BET-HEADER
            MOVE ELEM-NUM-HEADER-1 TO NUM-HEADER-1
            MOVE ELEM-NUM-HEADER-2 TO NUM-HEADER-2.
@@ -229,7 +250,8 @@
       *
       * The value of IDX determines whether to log RANDOM-X & RANDOM-Y
       * in CURRENT-X1 & CURRENT-Y1 or in CURRENT-X2 & CURRENT-Y2 in
-      * the CHEATSHT report.
+      * the CHEATSHT report. This function can be removed after
+      * debugging is complete.
               MOVE 1 TO IDX
               PERFORM 2 TIMES
       *
@@ -255,6 +277,7 @@
                  END-PERFORM
       *
       * Log the current symbol and its positions in CHEATSHT
+      * This function can be removed after debugging is complete.
                  MOVE SYM(RANDOM-SYMBOL-IDX) TO CURRENT-SYMBOL
                  IF IDX IS LESS THAN 2 THEN
                     MOVE RANDOM-X TO CURRENT-X1
@@ -274,42 +297,43 @@
               MOVE SPACE TO SYM(RANDOM-SYMBOL-IDX)
       *
       * and write the log to the file
+      * This function can be removed after debugging is complete.
               MOVE WS-REPORT-RECORD TO REPORT-RECORD
               WRITE REPORT-RECORD
            END-PERFORM.
       *
-       130-DISPLAY-CARD-TABLE.
+       130-LOG-CARD-TABLE.
       *
       * This paragraph displays the contents of CARD-TABLE with row
-      * and column headers  on the screen and writes the contents to an
-      * output file
-           DISPLAY "DIFFICULTY: " DIFFICULTY
+      * and column headers on the screen and/OR writes the contents to
+      * an output file
+      *     DISPLAY "DIFFICULTY: " DIFFICULTY
            STRING "DIFFICULTY: " DIFFICULTY DELIMITED BY SIZE
                     INTO WS-CARD-TABLE-RECORD
            END-STRING
            MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
            WRITE CARD-TABLE-RECORD
       *
-           DISPLAY "TABLE-SIZE: " TABLE-SIZE
+      *     DISPLAY "TABLE-SIZE: " TABLE-SIZE
            STRING "TABLE-SIZE: " TABLE-SIZE DELIMITED BY SIZE
                     INTO WS-CARD-TABLE-RECORD
            END-STRING
            MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
            WRITE CARD-TABLE-RECORD
       *
-           DISPLAY "LOOP-COUNTER: " LOOP-COUNTER
+      *     DISPLAY "LOOP-COUNTER: " LOOP-COUNTER
            STRING "LOOP-COUNTER: " LOOP-COUNTER DELIMITED BY SIZE
                     INTO WS-CARD-TABLE-RECORD
            END-STRING
            MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
            WRITE CARD-TABLE-RECORD
       *
-           DISPLAY "CARD-TABLE CONTENTS:"
+      *     DISPLAY "CARD-TABLE CONTENTS:"
            MOVE "CARD-TABLE CONTENTS:" TO WS-CARD-TABLE-RECORD
            MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
            WRITE CARD-TABLE-RECORD
       *
-           DISPLAY SPACES
+      *     DISPLAY SPACES
            MOVE SPACES TO WS-CARD-TABLE-RECORD
            MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
            WRITE CARD-TABLE-RECORD
@@ -318,41 +342,49 @@
       *
            PERFORM VARYING IDX FROM 1 BY 1
                    UNTIL IDX IS GREATER THAN TABLE-SIZE
-                   DISPLAY IDX "|" R IN CARD-TABLE(IDX) "|"
-                   STRING IDX "|" R IN CARD-TABLE(IDX) "|"
+      *             DISPLAY IDX "|" R IN CARD-TABLE(IDX) "|"
+                   MOVE IDX TO IDX-OUT
+                   STRING IDX-OUT "|" R IN CARD-TABLE(IDX) "|"
                           DELIMITED BY SIZE
                           INTO WS-CARD-TABLE-RECORD
                    END-STRING
                    MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
                    WRITE CARD-TABLE-RECORD
            END-PERFORM
-           DISPLAY "Y +" LINE-HEADER "+"
+      *     DISPLAY "Y +" LINE-HEADER "+"
            STRING "Y +" LINE-HEADER "+" DELIMITED BY SIZE
                  INTO WS-CARD-TABLE-RECORD
            END-STRING
            MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
-           WRITE CARD-TABLE-RECORD
-           DISPLAY SPACES
+           WRITE CARD-TABLE-RECORD.
+      *     DISPLAY SPACES
       * This variable should only be logged on the SYSOUT display
       * because it is too long for an 80-column data set
-           DISPLAY "AVAILABLE-SYMBOLS: " AVAILABLE-SYMBOLS.
+      *     DISPLAY "AVAILABLE-SYMBOLS: " AVAILABLE-SYMBOLS.
 
        131-CARD-TABLE-HEADER-ROWS.
-           DISPLAY " X " NUM-HEADER-1
+      *     DISPLAY " X " NUM-HEADER-1
            STRING " X " NUM-HEADER-1 DELIMITED BY SIZE
                  INTO WS-CARD-TABLE-RECORD
            END-STRING
            MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
            WRITE CARD-TABLE-RECORD
       *
-           DISPLAY "   " NUM-HEADER-2
+      *     DISPLAY "   " NUM-HEADER-2
            STRING "   " NUM-HEADER-2 DELIMITED BY SIZE
                  INTO WS-CARD-TABLE-RECORD
            END-STRING
            MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
            WRITE CARD-TABLE-RECORD
       *
-           DISPLAY "Y +" LINE-HEADER "+"
+      *     DISPLAY "   " ALPHA-BET-HEADER
+           STRING "   " ALPHA-BET-HEADER DELIMITED BY SIZE
+                 INTO WS-CARD-TABLE-RECORD
+           END-STRING
+           MOVE WS-CARD-TABLE-RECORD TO CARD-TABLE-RECORD
+           WRITE CARD-TABLE-RECORD
+      *
+      *     DISPLAY "Y +" LINE-HEADER "+"
            STRING "Y +" LINE-HEADER "+" DELIMITED BY SIZE
                  INTO WS-CARD-TABLE-RECORD
            END-STRING
@@ -379,3 +411,44 @@
       * header tables in the DATA DIVISION make this step unnecessary.
       *     MOVE SPACES TO WS-CARD-TABLE-RECORD
       *
+       140-DISPLAY-BLANK-TABLE.
+           DISPLAY "   " ALPHA-BET-HEADER
+           DISPLAY "Y +" LINE-HEADER "+"
+           PERFORM VARYING IDX FROM 1 BY 1
+                    UNTIL IDX IS GREATER THAN TABLE-SIZE
+                    MOVE IDX TO IDX-OUT
+                    DISPLAY IDX-OUT "|" R IN BLANK-TABLE(IDX) "|"
+           END-PERFORM
+           DISPLAY "  +" LINE-HEADER "+"
+           DISPLAY SPACES.
+      *
+       150-PROCESS-USER-INPUT.
+      *
+      * This paragraph processes the user's alphanumeric coordinates
+      * into X,Y numeric table coordinates.  It then uses those numeric
+      * table coordinates to retrieve the two symbols stored in those
+      * locations of CARD-TABLE.  Those two symbols are stored in
+      * corresponding locations of BLANK-TABLE for display.  Then, the
+      * two symbols are compared for equality.
+      *
+      * Convert user's alphanumeric coordinates into X,Y coordinates
+           COMPUTE X-LOC-1 = FUNCTION ORD(LOCATION-1-COORD(1:1)) - 193
+           MOVE LOCATION-1-COORD(2:1) TO Y-LOC-1
+           COMPUTE X-LOC-2 = FUNCTION ORD(LOCATION-2-COORD(1:1)) - 193
+           MOVE LOCATION-2-COORD(2:1) TO Y-LOC-2
+      *
+      * Display results for debugging purposes
+           DISPLAY SPACES
+           DISPLAY "                   X, Y"
+           DISPLAY "LOCATION #1: " LOCATION-1-COORD " = " X-LOC-1
+                    "," Y-LOC-1
+           DISPLAY "LOCATION #2: " LOCATION-2-COORD " = " X-LOC-2
+                    "," Y-LOC-2
+           DISPLAY SPACES
+      *
+      * Copy the two symbols to corresponding locations in BLANK-TABLE
+	  * for display to the user
+           MOVE C IN CARD-TABLE(Y-LOC-1, X-LOC-1) TO
+                 C IN BLANK-TABLE(Y-LOC-1, X-LOC-1)
+           MOVE C IN CARD-TABLE(Y-LOC-2, X-LOC-2) TO
+                 C IN BLANK-TABLE(Y-LOC-2, X-LOC-2).
