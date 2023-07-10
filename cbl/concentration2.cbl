@@ -172,6 +172,9 @@
                  C IN BLANK-TABLE(Y-LOC-2, X-LOC-2) THEN
                     DISPLAY "You found a match!"
               ELSE
+      * Conceal these locations again
+                    MOVE SPACE TO C IN BLANK-TABLE(Y-LOC-1, X-LOC-1)
+                    MOVE SPACE TO C IN BLANK-TABLE(Y-LOC-2, X-LOC-2)
                     DISPLAY "These do NOT match!"
               END-IF
            WHEN "X"
@@ -193,6 +196,14 @@
            OPEN OUTPUT POPULATED-CARD-TABLE.
       *
        105-INITIALIZE.
+      *
+      * Retrieve difficulty level from user
+           PERFORM WITH TEST AFTER
+              UNTIL DIFFICULTY IS GREATER THAN ZERO AND
+                    DIFFICULTY IS LESS THAN 12
+              ACCEPT DIFFICULTY
+           END-PERFORM
+           DISPLAY "DIFFICULTY: " DIFFICULTY
       *
       * Set TABLE-SIZE based on the value stored in DIFFICULTY
            ADD 2 TO DIFFICULTY GIVING TABLE-SIZE
@@ -492,14 +503,20 @@
       *
       * NOTE: EBCDIC requires separate calculations for A-I, J-R, & S-Z
       *       because the characters are not located consecutively
-      *       within the codepage table
+      *       within the codepage table.  COMPUTE statements MUST be
+      *       used because intrinsic functions are not allowed in
+      *       SUBTRACT statements.
       *
                  EVALUATE LOCATION-1-COORD(1:1)
                  WHEN "A" THRU "I"
+      *              SUBTRACT 193 FROM
+      *               FUNCTION ORD(LOCATION-1-COORD(1:1)) GIVING X-LOC-1
                     COMPUTE X-LOC-1 =
                        FUNCTION ORD(LOCATION-1-COORD(1:1)) - 193
                     END-COMPUTE
                  WHEN "J" THRU "M"
+      *              SUBTRACT 200 FROM
+      *               FUNCTION ORD(LOCATION-1-COORD(1:1)) GIVING X-LOC-1
                     COMPUTE X-LOC-1 =
                        FUNCTION ORD(LOCATION-1-COORD(1:1)) - 200
                     END-COMPUTE
