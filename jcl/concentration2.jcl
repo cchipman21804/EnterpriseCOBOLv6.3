@@ -16,12 +16,21 @@
 //RUN     EXEC PGM=&COBPGM
 //STEPLIB  DD  DSN=&SYSUID..LOAD,DISP=SHR
 //SYSOUT   DD  SYSOUT=*,OUTLIM=15000
+//* *****************************************************************
+//* These are log files for debugging purposes before this program
+//* becomes totally interactive
 //CHEATSHT DD  DSN=&SYSUID..OUTPUT(CHEATSHT),DISP=SHR
 //CARDTABL DD  DSN=&SYSUID..OUTPUT(CARDTABL),DISP=SHR
 //* USE SYSIN DATA SET TO ENTER ANY DATA INTO COBOL ACCEPT STATEMENTS
+//*******************************************************************
+//* Concentration requires two alphanumeric coordinates as input
+//* similar to grid coordinates on a spreadsheet
+//* Entering an X as part of one of the alphanumeric coordinates causes
+//* the program to exit without evaluating any cells in the table.
+//*******************************************************************
 //SYSIN    DD *
-A1
-B2
+F10
+k5
 /*
 // ELSE
 // ENDIF
