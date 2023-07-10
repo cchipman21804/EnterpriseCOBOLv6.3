@@ -23,14 +23,16 @@
 //CARDTABL DD  DSN=&SYSUID..OUTPUT(CARDTABL),DISP=SHR
 //* USE SYSIN DATA SET TO ENTER ANY DATA INTO COBOL ACCEPT STATEMENTS
 //*******************************************************************
-//* Concentration requires two alphanumeric coordinates as input
-//* similar to grid coordinates on a spreadsheet
+//* Concentration requires as input a numeric difficulty level (1-11)
+//* and two alphanumeric coordinates similar to grid coordinates on a
+//* spreadsheet.
 //* Entering an X as part of one of the alphanumeric coordinates causes
 //* the program to exit without evaluating any cells in the table.
 //*******************************************************************
 //SYSIN    DD *
-F10
-k5
+01
+c1
+a2
 /*
 // ELSE
 // ENDIF
