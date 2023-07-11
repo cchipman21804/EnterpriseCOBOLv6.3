@@ -30,7 +30,9 @@
 //* the program to exit without evaluating any cells in the table.
 //*******************************************************************
 //SYSIN    DD *
-01
+0
+15
+11
 c1
 a2
 /*
