@@ -50,7 +50,8 @@
       * table size increases with the difficulty level and available
       * symbols are used).
       *
-       01 DIFFICULTY                              PIC 99    VALUE 11.
+       01 DIFFICULTY-IN                           PIC XX.
+       01 DIFFICULTY                              PIC 99    VALUE ZERO.
        01 TABLE-SIZE                              PIC 99.
       *
       * Stores every printable symbol used in the game & provides a
@@ -201,7 +202,13 @@
            PERFORM WITH TEST AFTER
               UNTIL DIFFICULTY IS GREATER THAN ZERO AND
                     DIFFICULTY IS LESS THAN 12
-              ACCEPT DIFFICULTY
+               PERFORM WITH TEST AFTER UNTIL
+                  FUNCTION TEST-NUMVAL(DIFFICULTY-IN) IS EQUAL TO ZERO
+                  DISPLAY "Enter Difficulty Level (1-11): "
+                  ACCEPT DIFFICULTY-IN
+                  DISPLAY DIFFICULTY-IN
+               END-PERFORM
+               COMPUTE DIFFICULTY = FUNCTION NUMVAL(DIFFICULTY-IN)
            END-PERFORM
            DISPLAY "DIFFICULTY: " DIFFICULTY
       *
