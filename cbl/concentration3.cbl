@@ -3,8 +3,9 @@
        AUTHOR.         CHIPMAN.
       *
       * This program plays the children's game "Concentration", also
-      * known as the card game "Memory".  Find matches by uncovering
-      * two cells in the 2-D table.
+      * known as the card game "Memory" in TSO or Unix.  Find matches by
+      * uncovering two cells in the 2-D table.  Enter the coordinates
+      * of your two choices as alphanumeric spreadsheet cells.
       *
       * These files will be removed after debugging is complete.
       *ENVIRONMENT DIVISION.
@@ -27,13 +28,13 @@
        WORKING-STORAGE SECTION.
        01 WS-REPORT-RECORD.
            05 CURRENT-SYMBOL                      PIC X.
-           05 FILLER                              PIC X VALUE SPACE.
+           05 FILLER                              PIC X     VALUE SPACE.
            05 CURRENT-X1                          PIC XX.
-           05 FILLER                              PIC X VALUE ','.
+           05 FILLER                              PIC X     VALUE ','.
            05 CURRENT-Y1                          PIC XX.
-           05 FILLER                              PIC X VALUE SPACE.
+           05 FILLER                              PIC X     VALUE SPACE.
            05 CURRENT-X2                          PIC XX.
-           05 FILLER                              PIC X VALUE ','.
+           05 FILLER                              PIC X     VALUE ','.
            05 CURRENT-Y2                          PIC XX.
            05 FILLER                              PIC X(67) VALUE SPACE.
 
@@ -134,7 +135,8 @@
 
        01 IDX                                     PIC 99    VALUE 1.
        01 IDX-OUT                                 PIC Z9.
-       01 LOOP-COUNTER                            PIC 999.
+       01 BLANK-SPACES-COUNTER                    PIC 999.
+       01 LOOP-COUNTER                            PIC 99.
        01 LOCATION-1-COORD                        PIC XXX.
        01 LOCATION-2-COORD                        PIC XXX.
        01 COORDINATE-1-LENGTH                     PIC 9.
@@ -164,6 +166,8 @@
            PERFORM 120-POPULATE-CARD-TABLE
       *    PERFORM 130-LOG-CARD-TABLE
            PERFORM 150-DISPLAY-BLANK-TABLE
+           PERFORM UNTIL BLANK-SPACES-COUNTER IS LESS THAN 2
+                    OR EXIT-REQUEST
            PERFORM 140-PROCESS-USER-INPUT
            PERFORM 150-DISPLAY-BLANK-TABLE
       *
@@ -174,6 +178,7 @@
                  C IN BLANK-TABLE(Y-LOC-1, X-LOC-1) IS EQUAL TO
                  C IN BLANK-TABLE(Y-LOC-2, X-LOC-2) THEN
                     DISPLAY "You found a match!"
+                    SUBTRACT 2 FROM BLANK-SPACES-COUNTER
               ELSE
       * Conceal these locations again
                     MOVE SPACE TO C IN BLANK-TABLE(Y-LOC-1, X-LOC-1)
@@ -196,6 +201,7 @@
       *
       *    CLOSE SYMBOL-TABLE-REPORT
       *    CLOSE POPULATED-CARD-TABLE
+           END-PERFORM
            STOP RUN.
       *
       *100-OPEN-FILES.
@@ -235,7 +241,8 @@
       * paragraph to work properly without errors and without causing
       * an infinite loop
       *
-           COMPUTE LOOP-COUNTER = TABLE-SIZE * TABLE-SIZE * 0.5
+           COMPUTE BLANK-SPACES-COUNTER = TABLE-SIZE ** 2
+           DIVIDE BLANK-SPACES-COUNTER BY 2 GIVING LOOP-COUNTER
       *
       * Populate AVAILABLE-SYMBOLS table with printable symbols --
            MOVE ALL-SYMBOLS TO AVAILABLE-SYMBOLS
@@ -343,6 +350,185 @@
       *       MOVE WS-REPORT-RECORD TO REPORT-RECORD
       *       WRITE REPORT-RECORD
            END-PERFORM.
+      *
+       140-PROCESS-USER-INPUT.
+      *
+      * This paragraph processes the user's alphanumeric coordinates
+      * into X,Y numeric table coordinates.  It then uses those numeric
+      * table coordinates to retrieve the two symbols stored in those
+      * locations of CARD-TABLE.  Those two symbols are stored in
+      * corresponding locations of BLANK-TABLE for display.  Then, the
+      * two symbols are compared for equality.
+      *
+           MOVE "N" TO INPUT-VALIDITY
+           DISPLAY "Coordinate #1: "
+           ACCEPT LOCATION-1-COORD
+           DISPLAY "Coordinate #2: "
+           ACCEPT LOCATION-2-COORD
+      *
+      * Display input coordinates for debugging purposes
+      *     DISPLAY "Coordinate #1: " LOCATION-1-COORD
+      *     DISPLAY "Coordinate #2: " LOCATION-2-COORD
+           MOVE FUNCTION UPPER-CASE(LOCATION-1-COORD) TO
+                 LOCATION-1-COORD
+           MOVE FUNCTION UPPER-CASE(LOCATION-2-COORD) TO
+                 LOCATION-2-COORD
+      *
+      * Test the validity of the user's input
+      *
+      * Are the input strings the proper length?
+      * AND
+      * Are the first characters alphabetic?
+      * AND
+      * Are the remaining characters numeric?
+      *
+      * Length of input strings must be > 1 and < 4
+      * First character must be alphabetic
+      * Alphabetic characters must be in the range A-M depending on
+      * the value of TABLE-SIZE
+      * Remaining characters must be numeric in the range of 1-13
+      * depending on the value of TABLE-SIZE
+      *
+      * Test for EXIT-REQUEST first
+           IF LOCATION-1-COORD(1:1) IS NOT EQUAL TO "X" AND
+              LOCATION-2-COORD(1:1) IS NOT EQUAL TO "X"
+           THEN
+              COMPUTE COORDINATE-1-LENGTH =
+                       FUNCTION LENGTH(FUNCTION TRIM(LOCATION-1-COORD))
+              COMPUTE COORDINATE-2-LENGTH =
+                       FUNCTION LENGTH(FUNCTION TRIM(LOCATION-2-COORD))
+
+      * Test for LENGTH-ERROR
+              IF COORDINATE-1-LENGTH < 2 OR COORDINATE-1-LENGTH > 3 OR
+                 COORDINATE-2-LENGTH < 2 OR COORDINATE-2-LENGTH > 3
+              THEN
+                 MOVE "R" TO INPUT-VALIDITY
+              END-IF
+
+      * Test for FORMAT-ERROR (alphabetic/numeric)
+              IF LOCATION-1-COORD(1:1) IS NOT ALPHABETIC OR
+                 LOCATION-2-COORD(1:1) IS NOT ALPHABETIC OR
+                 FUNCTION TRIM(LOCATION-1-COORD(2:)) IS NOT NUMERIC OR
+                 FUNCTION TRIM(LOCATION-2-COORD(2:)) IS NOT NUMERIC
+              THEN
+                 MOVE "F" TO INPUT-VALIDITY
+              END-IF
+
+      * If the coordinates are the proper length and the proper format
+              IF NOT LENGTH-ERROR AND
+                 NOT FORMAT-ERROR
+              THEN
+      * Convert user's alphanumeric coordinates into X,Y coordinates
+      *
+      * NOTE: EBCDIC requires separate calculations for A-I, J-R, & S-Z
+      *       because the characters are not located consecutively
+      *       within the codepage table.  COMPUTE statements MUST be
+      *       used because intrinsic functions are not allowed in
+      *       SUBTRACT statements.
+      *
+                 EVALUATE LOCATION-1-COORD(1:1)
+                 WHEN "A" THRU "I"
+      *              SUBTRACT 193 FROM
+      *               FUNCTION ORD(LOCATION-1-COORD(1:1)) GIVING X-LOC-1
+                    COMPUTE X-LOC-1 =
+                       FUNCTION ORD(LOCATION-1-COORD(1:1)) - 193
+                    END-COMPUTE
+                 WHEN "J" THRU "M"
+      *              SUBTRACT 200 FROM
+      *               FUNCTION ORD(LOCATION-1-COORD(1:1)) GIVING X-LOC-1
+                    COMPUTE X-LOC-1 =
+                       FUNCTION ORD(LOCATION-1-COORD(1:1)) - 200
+                    END-COMPUTE
+                 END-EVALUATE
+                 EVALUATE LOCATION-2-COORD(1:1)
+                 WHEN "A" THRU "I"
+                    COMPUTE X-LOC-2 =
+                       FUNCTION ORD(LOCATION-2-COORD(1:1)) - 193
+                    END-COMPUTE
+                 WHEN "J" THRU "M"
+                    COMPUTE X-LOC-2 =
+                       FUNCTION ORD(LOCATION-2-COORD(1:1)) - 200
+                    END-COMPUTE
+                 END-EVALUATE
+                 MOVE FUNCTION TRIM(LOCATION-1-COORD(2:)) TO Y-LOC-1
+                 MOVE FUNCTION TRIM(LOCATION-2-COORD(2:)) TO Y-LOC-2
+      *
+      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+      *        CONSIDER CHANGING THESE TWO NESTED IF STATEMENTS       *
+      *                (BELOW) TO EVALUATE STATEMENTS                 *
+      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+      *
+      * Test BOTH X & Y coordinates for validity (proper range)
+                 IF X-LOC-1 IS GREATER THAN ZERO AND
+                    X-LOC-1 IS LESS THAN OR EQUAL TO TABLE-SIZE AND
+                    Y-LOC-1 IS GREATER THAN ZERO AND
+                    Y-LOC-1 IS LESS THAN OR EQUAL TO TABLE-SIZE AND
+                    X-LOC-2 IS GREATER THAN ZERO AND
+                    X-LOC-2 IS LESS THAN OR EQUAL TO TABLE-SIZE AND
+                    Y-LOC-2 IS GREATER THAN ZERO AND
+                    Y-LOC-2 IS LESS THAN OR EQUAL TO TABLE-SIZE
+                 THEN
+      * Test BOTH X & Y coordinates for same location
+                    IF X-LOC-1 IS EQUAL TO X-LOC-2
+                       AND
+                       Y-LOC-1 IS EQUAL TO Y-LOC-2
+                    THEN
+                       MOVE "S" TO INPUT-VALIDITY
+                    ELSE
+      * The coordinates pass ALL the validity tests!
+                       MOVE "Y" TO INPUT-VALIDITY
+      * Copy the two symbols to corresponding locations in BLANK-TABLE
+      * for display to the user
+                       MOVE C IN CARD-TABLE(Y-LOC-1, X-LOC-1) TO
+                             C IN BLANK-TABLE(Y-LOC-1, X-LOC-1)
+                       MOVE C IN CARD-TABLE(Y-LOC-2, X-LOC-2) TO
+                             C IN BLANK-TABLE(Y-LOC-2, X-LOC-2)
+                    END-IF
+                 ELSE
+      * The coordinates are out of range
+                    MOVE "R" TO INPUT-VALIDITY
+                 END-IF
+      *
+      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+      *        CONSIDER CHANGING THESE TWO NESTED IF STATEMENTS       *
+      *                (ABOVE) TO EVALUATE STATEMENTS                 *
+      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+      *
+              END-IF
+      *
+      * Display results for debugging purposes
+      *        DISPLAY SPACES
+      *        DISPLAY "                    X, Y   Length"
+      *        DISPLAY "LOCATION #1: " LOCATION-1-COORD " = " X-LOC-1
+      *                 "," Y-LOC-1 "      " COORDINATE-1-LENGTH
+      *        DISPLAY "LOCATION #2: " LOCATION-2-COORD " = " X-LOC-2
+      *                 "," Y-LOC-2 "      " COORDINATE-2-LENGTH
+      *        DISPLAY SPACES
+           ELSE
+              MOVE "X" TO INPUT-VALIDITY
+           END-IF.
+      * Display the appropriate message
+      *     EVALUATE INPUT-VALIDITY
+      *        WHEN "F" DISPLAY "COORDINATES HAVE IMPROPER FORMAT"
+      *        WHEN "L" DISPLAY "COORDINATES ARE IMPROPER LENGTH"
+      *        WHEN "N" DISPLAY "DEFAULT INVALID INPUT!"
+      *        WHEN "R" DISPLAY "COORDINATES ARE OUT OF RANGE"
+      *        WHEN "S" DISPLAY "COORDINATES POINT TO THE SAME LOCATION"
+      *        WHEN "X" DISPLAY "USER REQUESTED PROGRAM EXIT"
+      *        WHEN "Y" DISPLAY "VALID INPUT"
+      *     END-EVALUATE.
+      *
+       150-DISPLAY-BLANK-TABLE.
+           DISPLAY SPACES
+           DISPLAY "   " ALPHA-BET-HEADER
+           DISPLAY "  +" LINE-HEADER "+"
+           PERFORM VARYING IDX FROM 1 BY 1
+                    UNTIL IDX IS GREATER THAN TABLE-SIZE
+                    MOVE IDX TO IDX-OUT
+                    DISPLAY IDX-OUT "|" R IN BLANK-TABLE(IDX) "|"
+           END-PERFORM
+           DISPLAY "  +" LINE-HEADER "+"
+           DISPLAY SPACES.
       *
       * 130-LOG-CARD-TABLE.
       *
@@ -452,183 +638,4 @@
       * first.  The elementary (77) headers and the variable length
       * header tables in the DATA DIVISION make this step unnecessary.
       *     MOVE SPACES TO WS-CARD-TABLE-RECORD
-      *
-       140-PROCESS-USER-INPUT.
-      *
-      * This paragraph processes the user's alphanumeric coordinates
-      * into X,Y numeric table coordinates.  It then uses those numeric
-      * table coordinates to retrieve the two symbols stored in those
-      * locations of CARD-TABLE.  Those two symbols are stored in
-      * corresponding locations of BLANK-TABLE for display.  Then, the
-      * two symbols are compared for equality.
-      *
-           MOVE "N" TO INPUT-VALIDITY
-           DISPLAY "Coordinate #1: "
-           ACCEPT LOCATION-1-COORD
-           DISPLAY "Coordinate #2: "
-           ACCEPT LOCATION-2-COORD
-      *
-      * Display input coordinates for debugging purposes
-      *     DISPLAY "Coordinate #1: " LOCATION-1-COORD
-      *     DISPLAY "Coordinate #2: " LOCATION-2-COORD
-           MOVE FUNCTION UPPER-CASE(LOCATION-1-COORD) TO
-                 LOCATION-1-COORD
-           MOVE FUNCTION UPPER-CASE(LOCATION-2-COORD) TO
-                 LOCATION-2-COORD
-      *
-      * Test the validity of the user's input
-      *
-      * Are the input strings the proper length?
-      * AND
-      * Are the first characters alphabetic?
-      * AND
-      * Are the remaining characters numeric?
-      *
-      * Length of input strings must be > 1 and < 4
-      * First character must be alphabetic
-      * Alphabetic characters must be in the range A-M depending on
-      * the value of TABLE-SIZE
-      * Remaining characters must be numeric in the range of 1-13
-      * depending on the value of TABLE-SIZE
-      *
-      * Test for EXIT-REQUEST first
-           IF LOCATION-1-COORD(1:1) IS NOT EQUAL TO "X" AND
-              LOCATION-2-COORD(1:1) IS NOT EQUAL TO "X"
-           THEN
-              COMPUTE COORDINATE-1-LENGTH =
-                       FUNCTION LENGTH(FUNCTION TRIM(LOCATION-1-COORD))
-              COMPUTE COORDINATE-2-LENGTH =
-                       FUNCTION LENGTH(FUNCTION TRIM(LOCATION-2-COORD))
-
-      * Test for LENGTH-ERROR
-              IF COORDINATE-1-LENGTH < 2 OR COORDINATE-1-LENGTH > 3 OR
-                 COORDINATE-2-LENGTH < 2 OR COORDINATE-2-LENGTH > 3
-              THEN
-                 MOVE "R" TO INPUT-VALIDITY
-              END-IF
-
-      * Test for FORMAT-ERROR (alphabetic/numeric)
-              IF LOCATION-1-COORD(1:1) IS NOT ALPHABETIC OR
-                 LOCATION-2-COORD(1:1) IS NOT ALPHABETIC OR
-                 FUNCTION TRIM(LOCATION-1-COORD(2:)) IS NOT NUMERIC OR
-                 FUNCTION TRIM(LOCATION-2-COORD(2:)) IS NOT NUMERIC
-              THEN
-                 MOVE "F" TO INPUT-VALIDITY
-              END-IF
-
-      * If the coordinates are the proper length and the proper format
-              IF NOT LENGTH-ERROR AND
-                 NOT FORMAT-ERROR
-              THEN
-      * Convert user's alphanumeric coordinates into X,Y coordinates
-      *
-      * NOTE: EBCDIC requires separate calculations for A-I, J-R, & S-Z
-      *       because the characters are not located consecutively
-      *       within the codepage table.  COMPUTE statements MUST be
-      *       used because intrinsic functions are not allowed in
-      *       SUBTRACT statements.
-      *
-                 EVALUATE LOCATION-1-COORD(1:1)
-                 WHEN "A" THRU "I"
-      *              SUBTRACT 193 FROM
-      *               FUNCTION ORD(LOCATION-1-COORD(1:1)) GIVING X-LOC-1
-                    COMPUTE X-LOC-1 =
-                       FUNCTION ORD(LOCATION-1-COORD(1:1)) - 193
-                    END-COMPUTE
-                 WHEN "J" THRU "M"
-      *              SUBTRACT 200 FROM
-      *               FUNCTION ORD(LOCATION-1-COORD(1:1)) GIVING X-LOC-1
-                    COMPUTE X-LOC-1 =
-                       FUNCTION ORD(LOCATION-1-COORD(1:1)) - 200
-                    END-COMPUTE
-                 END-EVALUATE
-                 EVALUATE LOCATION-2-COORD(1:1)
-                 WHEN "A" THRU "I"
-                    COMPUTE X-LOC-2 =
-                       FUNCTION ORD(LOCATION-2-COORD(1:1)) - 193
-                    END-COMPUTE
-                 WHEN "J" THRU "M"
-                    COMPUTE X-LOC-2 =
-                       FUNCTION ORD(LOCATION-2-COORD(1:1)) - 200
-                    END-COMPUTE
-                 END-EVALUATE
-                 MOVE FUNCTION TRIM(LOCATION-1-COORD(2:)) TO Y-LOC-1
-                 MOVE FUNCTION TRIM(LOCATION-2-COORD(2:)) TO Y-LOC-2
-      *
-      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-      *            CHANGE THESE TWO NESTED IF STATEMENTS              *
-      *               (BELOW) TO EVALUATE STATEMENTS                  *
-      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-      *
-      * Test BOTH X & Y coordinates for validity (proper range)
-                 IF X-LOC-1 IS GREATER THAN ZERO AND
-                    X-LOC-1 IS LESS THAN OR EQUAL TO TABLE-SIZE AND
-                    Y-LOC-1 IS GREATER THAN ZERO AND
-                    Y-LOC-1 IS LESS THAN OR EQUAL TO TABLE-SIZE AND
-                    X-LOC-2 IS GREATER THAN ZERO AND
-                    X-LOC-2 IS LESS THAN OR EQUAL TO TABLE-SIZE AND
-                    Y-LOC-2 IS GREATER THAN ZERO AND
-                    Y-LOC-2 IS LESS THAN OR EQUAL TO TABLE-SIZE
-                 THEN
-      * Test BOTH X & Y coordinates for same location
-                    IF X-LOC-1 IS EQUAL TO X-LOC-2
-                       AND
-                       Y-LOC-1 IS EQUAL TO Y-LOC-2
-                    THEN
-                       MOVE "S" TO INPUT-VALIDITY
-                    ELSE
-      * The coordinates pass ALL the validity tests!
-                       MOVE "Y" TO INPUT-VALIDITY
-      * Copy the two symbols to corresponding locations in BLANK-TABLE
-      * for display to the user
-                       MOVE C IN CARD-TABLE(Y-LOC-1, X-LOC-1) TO
-                             C IN BLANK-TABLE(Y-LOC-1, X-LOC-1)
-                       MOVE C IN CARD-TABLE(Y-LOC-2, X-LOC-2) TO
-                             C IN BLANK-TABLE(Y-LOC-2, X-LOC-2)
-                    END-IF
-                 ELSE
-      * The coordinates are out of range
-                    MOVE "R" TO INPUT-VALIDITY
-                 END-IF
-      *
-      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-      *            CHANGE THESE TWO NESTED IF STATEMENTS              *
-      *               (ABOVE) TO EVALUATE STATEMENTS                  *
-      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-      *
-              END-IF
-      *
-      * Display results for debugging purposes
-      *        DISPLAY SPACES
-      *        DISPLAY "                    X, Y   Length"
-      *        DISPLAY "LOCATION #1: " LOCATION-1-COORD " = " X-LOC-1
-      *                 "," Y-LOC-1 "      " COORDINATE-1-LENGTH
-      *        DISPLAY "LOCATION #2: " LOCATION-2-COORD " = " X-LOC-2
-      *                 "," Y-LOC-2 "      " COORDINATE-2-LENGTH
-      *        DISPLAY SPACES
-           ELSE
-              MOVE "X" TO INPUT-VALIDITY
-           END-IF.
-      * Display the appropriate message
-      *     EVALUATE INPUT-VALIDITY
-      *        WHEN "F" DISPLAY "COORDINATES HAVE IMPROPER FORMAT"
-      *        WHEN "L" DISPLAY "COORDINATES ARE IMPROPER LENGTH"
-      *        WHEN "N" DISPLAY "DEFAULT INVALID INPUT!"
-      *        WHEN "R" DISPLAY "COORDINATES ARE OUT OF RANGE"
-      *        WHEN "S" DISPLAY "COORDINATES POINT TO THE SAME LOCATION"
-      *        WHEN "X" DISPLAY "USER REQUESTED PROGRAM EXIT"
-      *        WHEN "Y" DISPLAY "VALID INPUT"
-      *     END-EVALUATE.
-      *
-       150-DISPLAY-BLANK-TABLE.
-           DISPLAY SPACES
-           DISPLAY "   " ALPHA-BET-HEADER
-           DISPLAY "  +" LINE-HEADER "+"
-           PERFORM VARYING IDX FROM 1 BY 1
-                    UNTIL IDX IS GREATER THAN TABLE-SIZE
-                    MOVE IDX TO IDX-OUT
-                    DISPLAY IDX-OUT "|" R IN BLANK-TABLE(IDX) "|"
-           END-PERFORM
-           DISPLAY "  +" LINE-HEADER "+"
-           DISPLAY SPACES.
       *
