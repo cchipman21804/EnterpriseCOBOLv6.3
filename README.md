@@ -92,6 +92,9 @@ DHWSAVE.cbl
 Energy savings utility that calculates the savings from various changes to
 domestic hot water usage.
 
+ELEVATOR.cbl
+This simulates the floor display and the control panel within an elevator car.
+
 ENTHALPY.cbl
 "Enthalpy Calculator"      
 Energy calculation utility that calculates enthalpy of ambient air from dry 
